@@ -37,6 +37,14 @@ EOF
 chmod 600 ~/.finhay/credentials/.env
 ```
 
+Then run once to resolve your user identity and sub-accounts:
+
+```bash
+./_shared/scripts/infer-sub-account.sh
+```
+
+This writes `USER_ID`, `SUB_ACCOUNT_NORMAL`, and/or `SUB_ACCOUNT_MARGIN` to `~/.finhay/credentials/.env` — required for all trading endpoints.
+
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `FINHAY_API_KEY` | Yes | `ak_test_*` or `ak_live_*` |

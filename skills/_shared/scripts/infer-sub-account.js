@@ -2,45 +2,36 @@
 
 const path = require("path");
 const { execFileSync } = require("child_process");
-const {
-  CREDENTIALS_ENV,
-  loadEnv,
-  readEnv,
-  setEnv,
-  writeEnv,
-} = require("./env-utils");
+const { CREDENTIALS_ENV, loadEnv, readEnv, setEnv, writeEnv } = require("./env-utils");
 
-const pCred = CREDENTIALS_ENV;
-loadEnv(pCred);
+loadEnv(CREDENTIALS_ENV);
 
-// ===== helpers =====
-const request = (...args) => JSON.parse(execFileSync("node", [path.join(__dirname, "request.js"), ...args], { encoding: "utf8" }));
-const upperCase = str => String(str).toUpperCase();
+if (process.env.USER_ID && (process.env.SUB_ACCOUNT_NORMAL || process.env.SUB_ACCOUNT_MARGIN)) {
+  console.log("✅ Credentials already set"); process.exit(0);
+}
 
-// ===== main =====
-(async () => {
-  let env = readEnv(pCred);
+const { FINHAY_API_KEY, FINHAY_API_SECRET } = process.env;
+if (!FINHAY_API_KEY || !FINHAY_API_SECRET) { console.error("ERROR: FINHAY_API_KEY and FINHAY_API_SECRET required"); process.exit(1); }
 
-  let uid = process.env.USER_ID;
-  if (!uid) {
-    const apiKey = process.env.FINHAY_API_KEY;
-    if (!apiKey) { console.error("ERROR: FINHAY_API_KEY required"); process.exit(1); }
+const request = (method, endpoint) =>
+  JSON.parse(execFileSync("node", [path.join(__dirname, "request.js"), method, endpoint], { encoding: "utf8" }));
 
-    const response = request("GET", `/users/oa/me`);
-    const owner = response.result;
-    uid = owner?.uid;
-    const subAccounts = owner?.sub_accounts || [];
-    if (!uid) { console.error("ERROR: userId missing in response"); process.exit(1); }
-    env = setEnv(env, "USER_ID", uid);
-    subAccounts.forEach(sba => {
-      const subAccountType = sba.type || "unknown";
-      env = setEnv(env, `SUB_ACCOUNT_${upperCase(subAccountType)}`, sba.id);
-      env = setEnv(env, `SUB_ACCOUNT_EXT_${upperCase(subAccountType)}`, sba.sub_account_ext);
-    });
-    writeEnv(pCred, env);
+try {
+  let env = readEnv(CREDENTIALS_ENV);
+
+  const uid = request("GET", "/users/v1/users/me").result?.user_id;
+  if (!uid) { console.error("ERROR: user_id missing in response"); process.exit(1); }
+  env = setEnv(env, "USER_ID", uid);
+
+  for (const sba of request("GET", `/users/v1/users/${uid}/sub-accounts`).result ?? []) {
+    const t = (sba.type || "unknown").toUpperCase();
+    env = setEnv(env, `SUB_ACCOUNT_${t}`, sba.id);
+    env = setEnv(env, `SUB_ACCOUNT_EXT_${t}`, sba.sub_account_ext);
   }
+
+  writeEnv(CREDENTIALS_ENV, env);
   console.log("✅ Credentials updated successfully");
-})().catch(e => {
+} catch (e) {
   console.error("ERROR:", e.message);
   process.exit(1);
-});
+}
