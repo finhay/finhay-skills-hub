@@ -1,69 +1,76 @@
 param([Parameter(Mandatory)][string]$Skill)
 
 $ErrorActionPreference = "Stop"
-$Repo = "finhay-pro/finhay-skills-hub"; $Branch = "main"
-$Raw  = "https://raw.githubusercontent.com/$Repo/$Branch"
-$Api  = "https://api.github.com/repos/$Repo"
-$Ttl  = 12 * 3600
+
+$Repo   = "finhay-pro/finhay-skills-hub"
+$Branch = "main"
+$Raw    = "https://raw.githubusercontent.com/$Repo/$Branch"
+$Api    = "https://api.github.com/repos/$Repo"
+$Ttl    = 12 * 3600
 $RefEnv = Join-Path $env:USERPROFILE ".finhay\ref\.env"
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-while ([System.IO.Path]::GetFileName($Root) -ne "skills") {
+while ([IO.Path]::GetFileName($Root) -ne "skills") {
     $P = Split-Path -Parent $Root
-    if ($P -eq $Root) { Write-Error "ERROR: skills/ not found"; exit 1 }
+    if ($P -eq $Root) { throw "ERROR: skills/ not found" }
     $Root = $P
 }
-if (-not (Test-Path (Join-Path $Root "$Skill\SKILL.md"))) { Write-Error "ERROR: skill not found: $Skill"; exit 1 }
 
-$ref = [ordered]@{}
+Test-Path (Join-Path $Root "$Skill\SKILL.md") | Out-Null || { throw "ERROR: skill not found: $Skill" }
+
+$ref = @{}
 if (Test-Path $RefEnv) {
-    foreach ($line in Get-Content $RefEnv) {
-        if ($line -match '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.+?)\s*$') { $ref[$Matches[1]] = $Matches[2] }
+    Get-Content $RefEnv | ForEach-Object {
+        if ($_ -match '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.+?)\s*$') { $ref[$Matches[1]] = $Matches[2] }
     }
 }
 
-$now   = [System.DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-$token = $Skill.ToUpper() -replace '[^A-Z0-9]+', '_'
+$now   = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+$token = ($Skill.ToUpper() -replace '[^A-Z0-9]+','_')
 $SK    = "SKILL_${token}_SYNC_AT"
 
-$sharedStale = ($now - [long](if ($ref["SHARED_SYNC_AT"]) { $ref["SHARED_SYNC_AT"] } else { 0 })) -gt $Ttl
-$skillStale  = ($now - [long](if ($ref[$SK])               { $ref[$SK] }               else { 0 })) -gt $Ttl
+$sharedStale = ($now - [long]($ref["SHARED_SYNC_AT"] ?? 0)) -gt $Ttl
+$skillStale  = ($now - [long]($ref[$SK]               ?? 0)) -gt $Ttl
 
-if (-not $sharedStale -and -not $skillStale) { Write-Host "$Skill`: up-to-date"; exit 0 }
+if (-not ($sharedStale -or $skillStale)) { Write-Host "$Skill`: up-to-date"; exit 0 }
 
-$blobs = (Invoke-RestMethod "$Api/git/trees/${Branch}?recursive=1").tree | Where-Object { $_.type -eq "blob" }
+$tree = (Invoke-RestMethod "$Api/git/trees/${Branch}?recursive=1").tree |
+        Where-Object type -eq "blob"
 
-function Sync-Component([string]$Name, [string]$Dest, [string]$Prefix) {
-    $ver = try { (Invoke-WebRequest "$Raw/skills/$Prefix/.version" -UseBasicParsing).Content.Trim() } catch { "unknown" }
-    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) "sync-$([System.IO.Path]::GetRandomFileName())"
+function Sync-Component($Name, $Dest, $Prefix) {
+    $ver = try { (Invoke-WebRequest "$Raw/skills/$Prefix/.version").Content.Trim() } catch { "unknown" }
+
+    $tmp = Join-Path ([IO.Path]::GetTempPath()) ("sync-" + [IO.Path]::GetRandomFileName())
     New-Item -ItemType Directory -Path $tmp | Out-Null
+
     try {
-        # Download files, defer symlinks to after copy
-        $symlinks = @()
-        $blobs | Where-Object { $_.path -like "skills/$Prefix/*" } | ForEach-Object {
-            $rel = $_.path -replace '^skills/', ''
+        $items = $tree | Where-Object { $_.path.StartsWith("skills/$Prefix/") }
+
+        foreach ($i in $items) {
+            $rel = $i.path.Substring(7)
             $out = Join-Path $tmp $rel
             New-Item -ItemType Directory -Path (Split-Path $out) -Force | Out-Null
-            if ($_.mode -eq "120000") {
-                $symlinks += @{ Rel = $rel; Target = (Invoke-WebRequest "$Raw/$($_.path)" -UseBasicParsing).Content.Trim() }
+
+            if ($i.mode -eq "120000") {
+                $target = (Invoke-WebRequest "$Raw/$($i.path)").Content.Trim()
+                New-Item -ItemType SymbolicLink -Path $out -Target $target -Force | Out-Null 2>$null
             } else {
-                Invoke-WebRequest "$Raw/$($_.path)" -OutFile $out -UseBasicParsing
+                Invoke-WebRequest "$Raw/$($i.path)" -OutFile $out
             }
         }
-        if (Test-Path $Dest) { Remove-Item $Dest -Recurse -Force }
+
+        Remove-Item $Dest -Recurse -Force -ErrorAction SilentlyContinue
         Copy-Item (Join-Path $tmp $Prefix) $Dest -Recurse
-        # Create symlinks at final destination
-        foreach ($sl in $symlinks) {
-            $link = Join-Path $Dest ($sl.Rel -replace "^$Prefix/", '')
-            if (Test-Path $link) { Remove-Item $link -Force }
-            try { New-Item -ItemType SymbolicLink -Path $link -Target $sl.Target -Force | Out-Null }
-            catch {
-                $absTarget = [System.IO.Path]::GetFullPath((Join-Path (Split-Path $link) $sl.Target))
-                cmd /c mklink /J "`"$link`"" "`"$absTarget`"" 2>$null | Out-Null
-            }
+
+        Get-ChildItem $Dest -Recurse -Filter *.sh | ForEach-Object {
+            $_.Attributes = $_.Attributes -bor [IO.FileAttributes]::Normal
         }
+
         Write-Host "${Name}: synced ($ver)"
-    } finally { if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force } }
+    }
+    finally {
+        if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
+    }
 }
 
 if ($sharedStale) { Sync-Component "_shared" (Join-Path $Root "_shared") "_shared" }
@@ -71,6 +78,7 @@ if ($skillStale)  { Sync-Component $Skill   (Join-Path $Root $Skill)    $Skill }
 
 if ($sharedStale) { $ref["SHARED_SYNC_AT"] = $now }
 if ($skillStale)  { $ref[$SK] = $now }
+
 $tmp2 = "$RefEnv.tmp"
-($ref.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) | Set-Content $tmp2 -Encoding UTF8
+$ref.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" } | Set-Content $tmp2 -Encoding UTF8
 Move-Item -Force $tmp2 $RefEnv

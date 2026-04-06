@@ -1,40 +1,82 @@
-param([Parameter(Mandatory)][string]$Method, [Parameter(Mandatory)][string]$Endpoint, [string]$Query = "")
+param(
+    [Parameter(Mandatory)][string]$Method,
+    [Parameter(Mandatory)][string]$Endpoint,
+    [string]$Query = "",
+    [string]$Body  = ""
+)
 
 $ErrorActionPreference = "Stop"
+
 $CredsPath = Join-Path $env:USERPROFILE ".finhay\credentials\.env"
+Test-Path $CredsPath | Out-Null || { throw "ERROR: $CredsPath not found" }
 
-if (-not (Test-Path $CredsPath)) { [Console]::Error.WriteLine("ERROR: $CredsPath not found"); exit 1 }
-
-foreach ($line in Get-Content $CredsPath) {
-    if ($line -match '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.+?)\s*$') {
-        [System.Environment]::SetEnvironmentVariable($Matches[1], $Matches[2], 'Process')
+Get-Content $CredsPath | ForEach-Object {
+    if ($_ -match '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.+?)\s*$') {
+        [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2], 'Process')
     }
 }
 
 $ApiKey    = $env:FINHAY_API_KEY
 $ApiSecret = $env:FINHAY_API_SECRET
-$BaseUrl   = if ($env:FINHAY_BASE_URL) { $env:FINHAY_BASE_URL } else { "https://open-api.fhsc.com.vn" }
+$BaseUrl   = $env:FINHAY_BASE_URL ?? "https://open-api.fhsc.com.vn"
 
-if (-not $ApiKey -or -not $ApiSecret) { [Console]::Error.WriteLine("ERROR: FINHAY_API_KEY and FINHAY_API_SECRET required."); exit 1 }
+if (-not $ApiKey -or -not $ApiSecret) {
+    throw "ERROR: FINHAY_API_KEY and FINHAY_API_SECRET required."
+}
 
-$Ts        = [System.DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString()
-$NonceBytes = New-Object byte[] 16; [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($NonceBytes)
-$Nonce     = ($NonceBytes | ForEach-Object { $_.ToString("x2") }) -join ""
-$Hmac      = New-Object System.Security.Cryptography.HMACSHA256
-$Hmac.Key  = [System.Text.Encoding]::UTF8.GetBytes($ApiSecret)
-$Sig       = ($Hmac.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("$Ts`n$Method`n$Endpoint`n")) | ForEach-Object { $_.ToString("x2") }) -join ""
-$Url       = "${BaseUrl}${Endpoint}"; if ($Query) { $Url += "?$Query" }
+$Ts = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString()
+
+$NonceBytes = [byte[]]::new(16)
+[Security.Cryptography.RandomNumberGenerator]::Fill($NonceBytes)
+$Nonce = ($NonceBytes | ForEach-Object { $_.ToString("x2") }) -join ""
+
+$Payload = "$Ts`n$Method`n$Endpoint`n"
+if ($Body) { $Payload += "$Body`n" }
+
+$Hmac = [Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($ApiSecret))
+$Sig  = ($Hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($Payload)) | ForEach-Object { $_.ToString("x2") }) -join ""
+
+$Url = "${BaseUrl}${Endpoint}"
+if ($Query) { $Url += "?$Query" }
+
+$Headers = @{
+    "X-FH-APIKEY"    = $ApiKey
+    "X-FH-TIMESTAMP" = $Ts
+    "X-FH-NONCE"     = $Nonce
+    "X-FH-SIGNATURE" = $Sig
+}
+
+$params = @{
+    Uri        = $Url
+    Method     = $Method
+    Headers    = $Headers
+    TimeoutSec = 30
+}
+
+if ($Body) {
+    $params["Body"]        = $Body
+    $params["ContentType"] = "application/json"
+}
 
 try {
-    $Res  = Invoke-WebRequest -Uri $Url -Method $Method -TimeoutSec 30 -UseBasicParsing -Headers @{
-        "X-FH-APIKEY" = $ApiKey; "X-FH-TIMESTAMP" = $Ts; "X-FH-NONCE" = $Nonce; "X-FH-SIGNATURE" = $Sig
+    $Res  = Invoke-WebRequest @params
+    $BodyRes = $Res.Content
+
+    $Ec = ($BodyRes | ConvertFrom-Json).error_code
+    if ($Ec -and $Ec -ne 0) {
+        throw "ERROR: error_code=$Ec`n$BodyRes"
     }
-    $Body = $Res.Content
-    $Ec   = [string]($Body | ConvertFrom-Json).error_code
-    if ($Ec -and $Ec -ne "0") { [Console]::Error.WriteLine("ERROR: error_code=$Ec`n$Body"); exit 1 }
-    Write-Output $Body
-} catch {
-    $Code = $null; try { $Code = $_.Exception.Response.StatusCode.value__ } catch {}
-    [Console]::Error.WriteLine("ERROR: $(if ($Code -and $Code -ge 400) { "HTTP $Code" } else { $_.Exception.Message })")
+
+    Write-Output $BodyRes
+}
+catch {
+    $Code = $null
+    try { $Code = $_.Exception.Response.StatusCode.value__ } catch {}
+
+    if ($Code -and $Code -ge 400) {
+        [Console]::Error.WriteLine("ERROR: HTTP $Code")
+    } else {
+        [Console]::Error.WriteLine($_.Exception.Message)
+    }
     exit 1
 }
