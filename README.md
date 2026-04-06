@@ -7,7 +7,7 @@ Agent skills for the [Finhay Securities](https://fhsc.com.vn/) Open API. Works w
 | Skill | Description |
 |-------|-------------|
 | `finhay-market` | Stock prices, funds, gold, crypto, macro indicators, charts |
-| `finhay-trading` | Owner identity, account balance, portfolio, orders, PnL, market session |
+| `finhay-portfolio` | Owner identity, account balance, portfolio, orders, PnL, market session |
 
 ## Install
 
@@ -21,7 +21,7 @@ claude plugin marketplace add finhay-pro/finhay-skills-hub
 
 ```bash
 npx skills add finhay-pro/finhay-skills-hub --skill finhay-market
-npx skills add finhay-pro/finhay-skills-hub --skill finhay-trading
+npx skills add finhay-pro/finhay-skills-hub --skill finhay-portfolio
 ```
 
 ## Setup

@@ -1,5 +1,5 @@
 ---
-name: finhay-trading
+name: finhay-portfolio
 description: "Owner identity, account balances, portfolio, orders, and profit/loss. Use when user asks about their account identity, trading account, stock holdings, order history, or today's PnL."
 license: MIT
 metadata:
@@ -8,7 +8,7 @@ metadata:
   homepage: "https://fhsc.com.vn/"
 ---
 
-# Finhay Trading
+# Finhay Portfolio
 
 Read-only trading data via the Finhay Securities Open API. All endpoints use signed `GET` requests.
 
