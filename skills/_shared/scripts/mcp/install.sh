@@ -52,7 +52,7 @@ if [ -f "$CREDS_FILE" ]; then
         echo "  Tim thay credentials tai $CREDS_FILE"
         echo "  API Key: $MASKED_KEY"
         echo ""
-        read -p "  Su dung credentials nay? (Y/n): " REUSE
+        read -p "  Su dung credentials nay? (Y/n): " REUSE < /dev/tty
         REUSE_LOWER=$(echo "$REUSE" | tr '[:upper:]' '[:lower:]')
         if [ "$REUSE_LOWER" != "n" ]; then
             API_KEY="$EXISTING_KEY"
@@ -65,13 +65,13 @@ fi
 if [ -z "$API_KEY" ]; then
     echo "  Tao API Key tai: https://www.finhay.com.vn/finhay-skills"
     echo ""
-    read -p "  API Key: " API_KEY
+    read -p "  API Key: " API_KEY < /dev/tty
     if [ -z "$API_KEY" ]; then
         echo "  Loi: API Key khong duoc de trong."
         exit 1
     fi
 
-    read -s -p "  API Secret: " API_SECRET
+    read -s -p "  API Secret: " API_SECRET < /dev/tty
     echo ""
     if [ -z "$API_SECRET" ]; then
         echo "  Loi: API Secret khong duoc de trong."
