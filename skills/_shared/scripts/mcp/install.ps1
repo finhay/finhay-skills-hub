@@ -7,55 +7,57 @@ function Invoke-FinhayInstall {
 
     # --- Check & install Node.js ---
     $NodeExe = $null
+    $NodeInstallDir = Join-Path $env:USERPROFILE ".finhay\nodejs"
+    $PortableNode = Join-Path $NodeInstallDir "node.exe"
+
     if (Get-Command node -ErrorAction SilentlyContinue) {
         $NodeExe = "node"
+    } elseif (Test-Path $PortableNode) {
+        $NodeExe = $PortableNode
+        $env:PATH = "$NodeInstallDir;$env:PATH"
     } else {
-        Write-Host "  Node.js chua duoc cai dat. Dang cai dat..."
+        Write-Host "  Node.js chua duoc cai dat. Dang tai ban portable (khong can quyen admin)..."
         Write-Host ""
 
         $TmpDir = Join-Path $env:TEMP "finhay-node-install"
         New-Item -ItemType Directory -Force -Path $TmpDir | Out-Null
 
-        $NodeMsi = Join-Path $TmpDir "node-installer.msi"
-        $NodeUrl = "https://nodejs.org/dist/v22.14.0/node-v22.14.0-x64.msi"
+        # Use portable zip — no admin rights needed
+        $Arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
+        $NodeZip = Join-Path $TmpDir "node.zip"
+        $NodeUrl = "https://nodejs.org/dist/v22.14.0/node-v22.14.0-win-$Arch.zip"
 
-        Write-Host "  Dang tai Node.js tu nodejs.org..."
-        Invoke-WebRequest -Uri $NodeUrl -OutFile $NodeMsi -UseBasicParsing
+        Write-Host "  Dang tai Node.js tu nodejs.org ($Arch)..."
+        Invoke-WebRequest -Uri $NodeUrl -OutFile $NodeZip -UseBasicParsing
 
-        Write-Host "  Dang cai dat Node.js (vui long nhan Yes neu co prompt UAC)..."
-        $MsiProcess = Start-Process msiexec.exe -ArgumentList "/i", "`"$NodeMsi`"", "/quiet", "/norestart" -Wait -PassThru
-        if ($MsiProcess.ExitCode -ne 0) {
-            throw "Node.js installer tra ve ma loi $($MsiProcess.ExitCode). Hay cai thu cong tai https://nodejs.org"
+        Write-Host "  Dang giai nen Node.js vao $NodeInstallDir..."
+        if (Test-Path $NodeInstallDir) {
+            Remove-Item -Recurse -Force $NodeInstallDir -ErrorAction SilentlyContinue
         }
+        New-Item -ItemType Directory -Force -Path $NodeInstallDir | Out-Null
+
+        Expand-Archive -Path $NodeZip -DestinationPath $TmpDir -Force
+
+        # Move contents of extracted node-vXX folder to NodeInstallDir
+        $ExtractedFolder = Get-ChildItem -Path $TmpDir -Directory | Where-Object { $_.Name -like "node-v*" } | Select-Object -First 1
+        if (-not $ExtractedFolder) {
+            throw "Khong tim thay thu muc Node.js sau khi giai nen."
+        }
+        Get-ChildItem -Path $ExtractedFolder.FullName | Move-Item -Destination $NodeInstallDir -Force
 
         Remove-Item -Recurse -Force $TmpDir -ErrorAction SilentlyContinue
 
-        # Refresh PATH from system environment
-        $MachinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-        $UserPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
-        $env:PATH = "$MachinePath;$UserPath"
-
-        # Try common Node.js install paths
-        $NodePaths = @(
-            "$env:ProgramFiles\nodejs\node.exe",
-            "${env:ProgramFiles(x86)}\nodejs\node.exe"
-        )
-        foreach ($p in $NodePaths) {
-            if (Test-Path $p) {
-                $NodeExe = $p
-                $env:PATH = "$(Split-Path $p);$env:PATH"
-                break
-            }
+        if (-not (Test-Path $PortableNode)) {
+            throw "Khong the cai Node.js. Hay cai thu cong tai https://nodejs.org"
         }
 
-        if (-not $NodeExe) {
-            if (Get-Command node -ErrorAction SilentlyContinue) {
-                $NodeExe = "node"
-            }
-        }
+        $NodeExe = $PortableNode
+        $env:PATH = "$NodeInstallDir;$env:PATH"
 
-        if (-not $NodeExe) {
-            throw "Khong the tim thay Node.js sau khi cai. Hay dong PowerShell, mo lai va chay lenh nay mot lan nua."
+        # Add to user PATH permanently
+        $CurrentUserPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
+        if ($CurrentUserPath -notlike "*$NodeInstallDir*") {
+            [System.Environment]::SetEnvironmentVariable("PATH", "$NodeInstallDir;$CurrentUserPath", "User")
         }
 
         $NodeVersion = & $NodeExe -v
