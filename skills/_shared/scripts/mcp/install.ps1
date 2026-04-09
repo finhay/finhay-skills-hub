@@ -124,78 +124,70 @@ FINHAY_BASE_URL=https://open-api.fhsc.com.vn
     }
 
     # --- Claude Desktop config ---
-    # Try all possible Claude Desktop paths (Microsoft Store, standard installer, and Anthropic's newer locations)
+    # Both paths may exist — prefer the one that Claude Desktop actually uses
     $StorePath = Join-Path $env:LOCALAPPDATA "Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json"
     $StandardPath = Join-Path $env:APPDATA "Claude\claude_desktop_config.json"
 
-    # Prefer existing config file; if neither exists, prefer Store path if its parent dir exists, else standard
-    $ConfigPath = $null
-    if (Test-Path $StorePath) {
-        $ConfigPath = $StorePath
-    } elseif (Test-Path $StandardPath) {
-        $ConfigPath = $StandardPath
-    } elseif (Test-Path (Split-Path $StorePath -Parent)) {
-        $ConfigPath = $StorePath
-    } else {
-        $ConfigPath = $StandardPath
+    # Collect all existing config paths; we will write to all of them to be safe
+    $ConfigPaths = @()
+    if (Test-Path $StorePath) { $ConfigPaths += $StorePath }
+    if (Test-Path $StandardPath) { $ConfigPaths += $StandardPath }
+
+    # If none exist, default to Standard path
+    if ($ConfigPaths.Count -eq 0) {
+        $ConfigPaths = @($StandardPath)
     }
 
-    Write-Host "  Ghi config vao: $ConfigPath"
+    foreach ($ConfigPath in $ConfigPaths) {
+        Write-Host "  Ghi config vao: $ConfigPath"
 
-    $ConfigDir = Split-Path $ConfigPath -Parent
-    if (-not (Test-Path $ConfigDir)) {
-        New-Item -ItemType Directory -Force -Path $ConfigDir | Out-Null
-    }
+        $ConfigDir = Split-Path $ConfigPath -Parent
+        if (-not (Test-Path $ConfigDir)) {
+            New-Item -ItemType Directory -Force -Path $ConfigDir | Out-Null
+        }
 
-    # Build full config as hashtable, merge with existing if any
-    $ConfigHash = @{ mcpServers = @{} }
+        # Build new config as ordered hashtable, preserving existing properties
+        $NewConfig = [ordered]@{}
+        $McpServers = [ordered]@{}
 
-    if (Test-Path $ConfigPath) {
-        try {
-            $ExistingJson = Get-Content $ConfigPath -Raw -ErrorAction Stop
-            if ($ExistingJson.Trim()) {
-                $Existing = $ExistingJson | ConvertFrom-Json -ErrorAction Stop
-                # Convert PSCustomObject to hashtable recursively
-                $ConfigHash = @{}
-                foreach ($prop in $Existing.PSObject.Properties) {
-                    if ($prop.Name -eq "mcpServers") {
-                        $mcpHash = @{}
-                        foreach ($server in $prop.Value.PSObject.Properties) {
-                            $serverHash = @{}
-                            foreach ($p in $server.Value.PSObject.Properties) {
-                                $serverHash[$p.Name] = $p.Value
+        if (Test-Path $ConfigPath) {
+            try {
+                $RawJson = Get-Content $ConfigPath -Raw -ErrorAction Stop
+                if ($RawJson.Trim()) {
+                    $Old = $RawJson | ConvertFrom-Json -ErrorAction Stop
+
+                    foreach ($prop in $Old.PSObject.Properties) {
+                        if ($prop.Name -eq "mcpServers" -and $prop.Value) {
+                            # Copy existing mcpServers entries
+                            foreach ($srv in $prop.Value.PSObject.Properties) {
+                                $McpServers[$srv.Name] = $srv.Value
                             }
-                            $mcpHash[$server.Name] = $serverHash
+                        } else {
+                            $NewConfig[$prop.Name] = $prop.Value
                         }
-                        $ConfigHash["mcpServers"] = $mcpHash
-                    } else {
-                        $ConfigHash[$prop.Name] = $prop.Value
                     }
                 }
-                if (-not $ConfigHash.ContainsKey("mcpServers")) {
-                    $ConfigHash["mcpServers"] = @{}
-                }
+            } catch {
+                Write-Host "  Canh bao: Khong doc duoc config cu, se tao moi. Loi: $($_.Exception.Message)"
             }
-        } catch {
-            Write-Host "  Canh bao: Khong doc duoc config cu, se tao moi. Loi: $($_.Exception.Message)"
-            $ConfigHash = @{ mcpServers = @{} }
         }
-    }
 
-    # Add/update finhay entry
-    if ($ConfigHash["mcpServers"].ContainsKey("finhay")) {
-        Write-Host "  Entry 'finhay' da ton tai, cap nhat lai."
-    }
-    $ConfigHash["mcpServers"]["finhay"] = @{
-        command = "npx"
-        args = @("-y", "finhay-mcp-server")
-    }
+        # Add/update finhay entry
+        if ($McpServers.Contains("finhay")) {
+            Write-Host "  Entry 'finhay' da ton tai, cap nhat lai."
+        }
+        $McpServers["finhay"] = [ordered]@{
+            command = "npx"
+            args = @("-y", "finhay-mcp-server")
+        }
 
-    # Write config
-    $JsonOutput = $ConfigHash | ConvertTo-Json -Depth 10
-    [System.IO.File]::WriteAllText($ConfigPath, $JsonOutput, [System.Text.Encoding]::UTF8)
+        $NewConfig["mcpServers"] = $McpServers
 
-    Write-Host "  Claude Desktop config: $ConfigPath"
+        # Write config (no BOM for JSON)
+        $JsonOutput = $NewConfig | ConvertTo-Json -Depth 10
+        $Utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($ConfigPath, $JsonOutput, $Utf8NoBom)
+    }
     Write-Host ""
     Write-Host "  Da cai dat thanh cong!"
     Write-Host "  Hay khoi dong lai Claude Desktop de su dung."
