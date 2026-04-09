@@ -1,21 +1,9 @@
 #!/bin/bash
 set -e
 
-# When running via `curl | bash`, stdin is the pipe — any subprocess that reads
-# stdin (brew, sudo, etc.) will eat the rest of the script. Re-execute from a
-# downloaded file so stdin is free for `read` and child processes.
-if [ ! -t 0 ] && [ -z "$FINHAY_REEXEC" ]; then
-    SCRIPT_TMP=$(mktemp)
-    if curl -fsSL https://raw.githubusercontent.com/finhay-pro/finhay-skills-hub/main/skills/_shared/scripts/mcp/install.sh -o "$SCRIPT_TMP"; then
-        FINHAY_REEXEC=1 bash "$SCRIPT_TMP" </dev/tty
-        EXIT_CODE=$?
-        rm -f "$SCRIPT_TMP"
-        exit $EXIT_CODE
-    else
-        rm -f "$SCRIPT_TMP"
-        echo "  Loi: Khong the tai script. Vui long thu lai."
-        exit 1
-    fi
+# Redirect stdin from /dev/tty so `read` works when script is piped from curl
+if [ -t 0 ] || ! exec < /dev/tty; then
+    :
 fi
 
 echo ""
@@ -117,6 +105,7 @@ if [ -f "$CONFIG_PATH" ]; then
         echo "  Claude Desktop config da co entry 'finhay', bo qua."
     else
         # Add finhay to existing mcpServers
+        TMP_FILE=$(mktemp)
         node -e "
             const fs = require('fs');
             const config = JSON.parse(fs.readFileSync('$CONFIG_PATH', 'utf-8'));
