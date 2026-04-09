@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-# Redirect stdin from /dev/tty so `read` works when script is piped from curl
-if [ -t 0 ] || ! exec < /dev/tty; then
-    :
-fi
-
 echo ""
 echo "  Finhay MCP Server — Cai dat cho Claude Desktop"
 echo ""
@@ -57,7 +52,8 @@ if [ -f "$CREDS_FILE" ]; then
         echo "  Tim thay credentials tai $CREDS_FILE"
         echo "  API Key: $MASKED_KEY"
         echo ""
-        read -p "  Su dung credentials nay? (Y/n): " REUSE        REUSE_LOWER=$(echo "$REUSE" | tr '[:upper:]' '[:lower:]')
+        read -p "  Su dung credentials nay? (Y/n): " REUSE < /dev/tty
+        REUSE_LOWER=$(echo "$REUSE" | tr '[:upper:]' '[:lower:]')
         if [ "$REUSE_LOWER" != "n" ]; then
             API_KEY="$EXISTING_KEY"
             API_SECRET="$EXISTING_SECRET"
@@ -69,12 +65,14 @@ fi
 if [ -z "$API_KEY" ]; then
     echo "  Tao API Key tai: https://www.finhay.com.vn/finhay-skills"
     echo ""
-    read -p "  API Key: " API_KEY    if [ -z "$API_KEY" ]; then
+    read -p "  API Key: " API_KEY < /dev/tty
+    if [ -z "$API_KEY" ]; then
         echo "  Loi: API Key khong duoc de trong."
         exit 1
     fi
 
-    read -s -p "  API Secret: " API_SECRET    echo ""
+    read -s -p "  API Secret: " API_SECRET < /dev/tty
+    echo ""
     if [ -z "$API_SECRET" ]; then
         echo "  Loi: API Secret khong duoc de trong."
         exit 1
@@ -105,7 +103,6 @@ if [ -f "$CONFIG_PATH" ]; then
         echo "  Claude Desktop config da co entry 'finhay', bo qua."
     else
         # Add finhay to existing mcpServers
-        TMP_FILE=$(mktemp)
         node -e "
             const fs = require('fs');
             const config = JSON.parse(fs.readFileSync('$CONFIG_PATH', 'utf-8'));
