@@ -229,7 +229,11 @@ components:
           description: KRX stocks only
         influenceScore:
           type: number
+          nullable: true  
+        outstandingShares:
+          type: number
           nullable: true
+        
 ```
 
 ### Notes

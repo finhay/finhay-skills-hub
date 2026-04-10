@@ -29,19 +29,24 @@ Use [request.sh](./_shared/scripts/request.sh) for every call.
 
 ## Endpoints
 
-| Category | Endpoint | Key params |
-|----------|----------|------------|
-| Stock | `/market/stock-realtime` | exactly one of: `symbol`, `symbols`, `exchange` |
-| Funds | `/market/funds` | — |
-| Fund detail | `/market/funds/:fund/portfolio` | `month` (optional) |
-| Gold / Silver | `/market/financial-data/gold`, `silver` | — |
-| Charts | `/market/financial-data/gold-chart`, `silver-chart` | `days` (default 30) |
-| Providers | `/market/financial-data/gold-providers`, `metal-providers` | — |
-| Bank rates | `/market/financial-data/bank-interest-rates` | — |
-| Crypto | `/market/financial-data/cryptos/top-trending` | — |
-| Macro | `/market/financial-data/macro` | `type`, `country`, `period` |
-| Reports | `/market/recommendation-reports/:symbol` | — |
-| Price history | `/market/price-histories-chart` | `symbol`, `resolution` (only `1D`), `from`, `to` (seconds) |
+| Endpoint | Use when | Path param | Query params |
+|----------|----------|------------|--------------|
+| `/market/stock-realtime` | Stock price, realtime quote | — | exactly one of: `symbol`, `symbols`, `exchange` |
+| `/market/funds` | Fund list, NAV | — | — |
+| `/market/funds/:fund/portfolio` | Fund holdings | `:fund` | `month` (optional) |
+| `/market/financial-data/gold`, `silver` | Gold/silver spot price | — | — |
+| `/market/financial-data/gold-chart`, `silver-chart` | Gold/silver price chart | — | `days` (default 30) |
+| `/market/financial-data/gold-providers`, `metal-providers` | Price by provider (PNJ, DOJI…) | — | — |
+| `/market/financial-data/bank-interest-rates` | Bank deposit rates | — | — |
+| `/market/financial-data/cryptos/top-trending` | Top crypto | — | — |
+| `/market/financial-data/macro` | CPI, PMI, interest rates… | — | `type`, `country`, `period` |
+| `/market/recommendation-reports/:symbol` | Analyst reports | `:symbol` | — |
+| `/market/price-histories-chart` | OHLCV price history | — | `symbol`, `resolution` (only `1D`), `from`, `to` (seconds) |
+
+### Parameter rules
+
+- Each endpoint accepts **only** the parameters listed in its path and query columns above. Do not add extra parameters.
+- All `:variables` in the URL are **path** variables — substitute them into the URL, never pass as query params.
 
 Details & response shapes: [references/endpoints.md](./references/endpoints.md).
 

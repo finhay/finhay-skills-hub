@@ -6,7 +6,7 @@ Signing: see [authentication.md](../_shared/authentication.md). Query params are
 
 From `~/.finhay/credentials/.env`:
 
-- `USER_ID` — required for PnL; written by `infer-sub-account.sh`
+- `USER_ID` — required for assets summary and PnL; written by `infer-sub-account.sh`
 - `SUB_ACCOUNT_NORMAL`, `SUB_ACCOUNT_MARGIN` — used as `{subAccountId}`; written by `infer-sub-account.sh`
 
 ## Error Codes
@@ -17,20 +17,21 @@ From `~/.finhay/credentials/.env`:
 | `401` | Auth failure |
 | `429` | Rate limited |
 
-Common causes: missing `FINHAY_API_KEY`, wrong path prefix, missing `USER_ID`, missing `fromDate`/`toDate` for orders, path mismatch in signature.
+Common causes: missing `FINHAY_API_KEY`, wrong path prefix (`/trading/` vs `/users/`), missing `USER_ID`, missing `fromDate`/`toDate` for orders, path mismatch in signature.
 
 ## Path Versions
 
 Versions are fixed per endpoint — do not change them:
 - `v1` → order book
 - `v2` → portfolio
+- `v4` → assets
 - `v5` → user rights
-- (no prefix) → account summary, asset summary, orders, PnL, market session
+- (no prefix) → account summary, orders, PnL, market session
 
 ## Response Keys
 
 - `result` — account-summary, orders, order-book (list), user-rights, market-session
-- `data` — asset-summary, order-book (detail), portfolio, pnl-today
+- `data` — assets, order-book (detail), portfolio, pnl-today
 
 ---
 
@@ -39,7 +40,7 @@ Versions are fixed per endpoint — do not change them:
 | # | Method | Path | Params | Res key | Detail |
 |---|--------|------|--------|---------|--------|
 | 1 | GET | `/trading/accounts/{subAccountId}/summary` | — | `result` | [detail](./endpoints/account-summary.md) |
-| 2 | GET | `/trading/sub-accounts/{subAccountId}/asset-summary` | — | `data` | [detail](./endpoints/asset-summary.md) |
+| 2 | GET | `/users/v4/users/{userId}/assets/summary` | `cache-control` | `data` | [detail](./endpoints/assets.md) |
 
 ## Orders
 

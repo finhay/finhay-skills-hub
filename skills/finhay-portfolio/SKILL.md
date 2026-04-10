@@ -1,6 +1,6 @@
 ---
 name: finhay-portfolio
-description: "Owner identity, account balances, portfolio, orders, and profit/loss. Use when user asks about their account identity, trading account, stock holdings, order history, or today's PnL."
+description: "Owner identity, account balance, portfolio, orders, and profit/loss. Use when user asks about their account identity, account balance, total assets, trading account, stock holdings, order history, or today's PnL."
 license: MIT
 metadata:
   author: Finhay Securities
@@ -32,6 +32,7 @@ Always use `request.sh`. Resolve all path variables (`{subAccountId}`, `{userId}
 source ~/.finhay/credentials/.env
 
 ./_shared/scripts/request.sh GET "/trading/accounts/$SUB_ACCOUNT_NORMAL/summary"
+./_shared/scripts/request.sh GET "/users/v4/users/$USER_ID/assets/summary"
 ./_shared/scripts/request.sh GET "/trading/sub-accounts/$SUB_ACCOUNT_MARGIN/orders" "fromDate=2024-01-01&toDate=2024-01-31"
 ./_shared/scripts/request.sh GET "/trading/v2/sub-accounts/$SUB_ACCOUNT_NORMAL/portfolio"
 ./_shared/scripts/request.sh GET "/trading/pnl-today/$USER_ID"
@@ -46,19 +47,24 @@ When `{subAccountId}` is required, ask the user whether to use NORMAL or MARGIN,
 
 ## Endpoints
 
-| Endpoint | Path param | Key params | Res key |
-|----------|------------|------------|---------|
-| `/trading/accounts/{subAccountId}/summary` | ask user | — | `result` |
-| `/trading/sub-accounts/{subAccountId}/asset-summary` | ask user | — | `data` |
-| `/trading/sub-accounts/{subAccountId}/orders` | ask user | `fromDate`, `toDate` (required) | `result` |
-| `/trading/v1/accounts/{subAccountId}/order-book` | ask user | — | `result` |
-| `/trading/v1/accounts/{subAccountId}/order-book/{orderId}` | ask user | `orderId` (path) | `data` |
-| `/trading/v2/sub-accounts/{subAccountId}/portfolio` | ask user | — | `data` |
-| `/trading/pnl-today/{userId}` | `$USER_ID` | — | `data` |
-| `/trading/v5/account/{subAccountId}/user-rights` | ask user | — | `result` |
-| `/trading/market/session` | — | `exchange` | `result` |
+| Endpoint | Use when | Path param | Query params | Res key |
+|----------|----------|------------|--------------|---------|
+| `/trading/accounts/{subAccountId}/summary` | Account detail, margin, debt | `{subAccountId}` → ask user | — | `result` |
+| `/users/v4/users/{userId}/assets/summary` | Balance, total assets, NAV | `{userId}` → `$USER_ID` | `cache-control` (default `CACHE`) | `data` |
+| `/trading/sub-accounts/{subAccountId}/orders` | Order history | `{subAccountId}` → ask user | `fromDate`, `toDate` (required) | `result` |
+| `/trading/v1/accounts/{subAccountId}/order-book` | Today's order book | `{subAccountId}` → ask user | — | `result` |
+| `/trading/v1/accounts/{subAccountId}/order-book/{orderId}` | Single order detail | `{subAccountId}` → ask user, `{orderId}` | — | `data` |
+| `/trading/v2/sub-accounts/{subAccountId}/portfolio` | Stock holdings | `{subAccountId}` → ask user | — | `data` |
+| `/trading/pnl-today/{userId}` | Today's P&L | `{userId}` → `$USER_ID` | — | `data` |
+| `/trading/v5/account/{subAccountId}/user-rights` | Trading permissions | `{subAccountId}` → ask user | — | `result` |
+| `/trading/market/session` | Market open/close | — | `exchange` (e.g. `HOSE`) | `result` |
 
-Path versions (`v1`, `v2`, `v5`) are fixed. Always use the exact versions listed above.
+Path versions (`v1`, `v2`, `v4`, `v5`) are fixed. Always use the exact versions listed above.
+
+### Parameter rules
+
+- Each endpoint accepts **only** the parameters listed in its path and query columns above. Do not add extra parameters.
+- All `{variables}` in the URL are **path** variables — substitute them into the URL, never pass as query params.
 
 Details & response schemas: [references/endpoints.md](./references/endpoints.md). Enums: [references/enums.md](./references/enums.md).
 
@@ -66,5 +72,4 @@ Details & response schemas: [references/endpoints.md](./references/endpoints.md)
 
 See [shared constraints](./_shared/constraints.md), plus:
 
-- `fromDate` and `toDate` are required for the orders endpoint. Never omit them.
 - Never substitute `{subAccountId}` without first confirming the sub-account type with the user.
