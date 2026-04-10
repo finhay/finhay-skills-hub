@@ -1,0 +1,60 @@
+# finhay-skills-hub
+
+Agent skills for the [Finhay Securities](https://fhsc.com.vn/) Open API. Works with Claude Code, Cursor, and other AI coding assistants.
+
+## Skills
+
+| Skill | Description |
+|-------|-------------|
+| `finhay-market` | Stock prices, funds, gold, crypto, macro indicators, charts |
+| `finhay-portfolio` | Owner identity, account balance, portfolio, orders, PnL, market session |
+
+## Install
+
+### Claude Code plugin
+
+```bash
+claude plugin marketplace add finhay/finhay-skills-hub
+```
+
+### npx (skills.sh)
+
+```bash
+npx skills add finhay/finhay-skills-hub --skill finhay-market
+npx skills add finhay/finhay-skills-hub --skill finhay-portfolio
+```
+
+## Setup
+
+```bash
+mkdir -p ~/.finhay/credentials
+cat > ~/.finhay/credentials/.env << 'EOF'
+FINHAY_API_KEY=ak_test_YOUR_API_KEY_HERE
+FINHAY_API_SECRET=YOUR_64_CHAR_HEX_SECRET_HERE
+FINHAY_BASE_URL=https://open-api.fhsc.com.vn
+EOF
+chmod 600 ~/.finhay/credentials/.env
+```
+
+Then run once to resolve your user identity and sub-accounts:
+
+```bash
+./_shared/scripts/infer-sub-account.sh
+```
+
+This writes `USER_ID`, `SUB_ACCOUNT_NORMAL`, and/or `SUB_ACCOUNT_MARGIN` to `~/.finhay/credentials/.env` — required for all trading endpoints.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `FINHAY_API_KEY` | Yes | `ak_test_*` or `ak_live_*` |
+| `FINHAY_API_SECRET` | Yes | 64-character hex secret |
+| `FINHAY_BASE_URL` | No | Defaults to `https://open-api.fhsc.com.vn` |
+
+## Prerequisites
+
+- `bash`, `curl`, `openssl` (macOS/Linux) hoặc PowerShell 5.1+ (Windows)
+- `~/.finhay/credentials/.env` with `FINHAY_API_KEY` and `FINHAY_API_SECRET`
+
+## License
+
+MIT
