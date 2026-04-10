@@ -61,6 +61,27 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 |---|------|--------|---------|------|--------|
 | 16 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
 
+## Company Financial
+
+| # | Path | Params | Res key | Detail |
+|---|------|--------|---------|--------|
+| 17 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
+| 18 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
+| 19 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
+
+---
+
+## Choosing the Right Company Financial Endpoint
+
+| Need | Endpoint |
+|------|----------|
+| Current ratios (PE, PB, ROE, EPS…) | `/company-financial/overview` |
+| Trend of ratios over years/quarters | `/company-financial/analysis` |
+| Income statement / balance sheet / cash flow | `/market/v2/financial-statement/statement` |
+
+`type` values for statement endpoints: `income-statement`, `balance-sheet`, `cash-flow`
+`period` values: `annual`, `quarterly`
+
 ---
 
 ## Choosing the Right Financial Data Endpoint
