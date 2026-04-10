@@ -1,6 +1,6 @@
 ---
 name: finhay-market
-description: "Stock prices, funds, gold, silver, crypto, macro indicators, bank rates, and price charts. Use when user asks about stock prices, gold/silver prices, fund performance, interest rates, macro data, or price history charts."
+description: "Stock prices, funds, gold, silver, crypto, macro indicators, bank rates, price charts, and company financials (income statement, balance sheet, cash flow, ratios). Use when user asks about stock prices, gold/silver prices, fund performance, interest rates, macro data, price history charts, or company financial statements."
 license: MIT
 metadata:
   author: Finhay Securities
@@ -42,6 +42,9 @@ Use [request.sh](./_shared/scripts/request.sh) for every call.
 | `/market/financial-data/macro` | CPI, PMI, interest rates… | — | `type`, `country`, `period` |
 | `/market/recommendation-reports/:symbol` | Analyst reports | `:symbol` | — |
 | `/market/price-histories-chart` | OHLCV price history | — | `symbol`, `resolution` (only `1D`), `from`, `to` (seconds) |
+| `/market/company-financial/overview` | Key ratios: PE, PB, ROE, EPS, dividend yield | — | `symbol` |
+| `/market/company-financial/analysis` | Historical financial metrics by period | — | `symbol`, `period` (`annual`/`quarterly`) |
+| `/market/v2/financial-statement/statement` | Income/balance sheet/cash flow, metric-value row format | — | `symbol`, `type`, `period`, `limit` |
 
 ### Parameter rules
 
