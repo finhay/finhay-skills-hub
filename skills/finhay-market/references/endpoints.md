@@ -46,26 +46,28 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | 10 | `/market/financial-data/bank-interest-rates` | — | `data` | [detail](./endpoints/bank-interest-rates.md) |
 | 11 | `/market/financial-data/cryptos/top-trending` | — | `data` | [detail](./endpoints/cryptos-top-trending.md) |
 | 12 | `/market/financial-data/macro` | `type`*, `country`*, `period` | `data` | [detail](./endpoints/macro.md) |
+| 13 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1) | `data` | [detail](./endpoints/economic-calendar-events.md) |
+| 14 | `/market/financial-data/market` | `type`*, `limit` (1–500, default 50) | `data` | Global indices, US Big Tech, commodities, FX. [detail](./endpoints/market-data.md) |
 
 ## Reports
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 13 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
+| 15 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
 
 ## Price History
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 14 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
+| 16 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
 
 ## Company Financial
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 15 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
-| 16 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
-| 17 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
+| 17 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
+| 18 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
+| 19 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
 
 ---
 
@@ -92,5 +94,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Gold chart (N days) | `/market/financial-data/gold-chart?days=N` |
 | Silver equivalents | replace `gold` → `silver` |
 | Macro (CPI, PMI, interest rates...) | `/market/financial-data/macro` |
+| Upcoming economic calendar (CPI release dates, FOMC, NFP...) | `/market/financial-data/economic-calendar-events` |
+| Global indices (S&P500, Nasdaq, Nikkei...), US Big Tech stocks, commodities (WTI, Brent, Copper), FX (EURUSD...) | `/market/financial-data/market` |
 | Bank deposit rates | `/market/financial-data/bank-interest-rates` |
 | Top crypto | `/market/financial-data/cryptos/top-trending` |
