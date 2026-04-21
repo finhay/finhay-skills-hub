@@ -25,6 +25,8 @@ Use [request.sh](./_shared/scripts/request.sh) for every call.
 ./_shared/scripts/request.sh GET /market/financial-data/gold
 ./_shared/scripts/request.sh GET /market/price-histories-chart "symbol=VNM&resolution=1D&from=1609459200&to=1704067200"
 ./_shared/scripts/request.sh GET /market/financial-data/macro "type=CPI&country=VN&period=YEARLY"
+./_shared/scripts/request.sh GET /market/financial-data/economic-calendar-events "weeks=2"
+./_shared/scripts/request.sh GET /market/financial-data/market "type=SP500&limit=100"
 ```
 
 ## Endpoints
@@ -39,6 +41,8 @@ Use [request.sh](./_shared/scripts/request.sh) for every call.
 | `/market/financial-data/bank-interest-rates` | Bank deposit rates | — | — |
 | `/market/financial-data/cryptos/top-trending` | Top crypto | — | — |
 | `/market/financial-data/macro` | CPI, PMI, interest rates… | — | `type`, `country`, `period` |
+| `/market/financial-data/economic-calendar-events` | Upcoming economic events (CPI/NFP/FOMC release dates, forecasts, impact) | — | `weeks` (default 1) |
+| `/market/financial-data/market` | Global indices (S&P500, Nasdaq, Nikkei, KOSPI…), US Big Tech (AAPL/MSFT/GOOGL/AMZN/META/NVDA/TSLA), commodities (Gold/Silver/Copper/WTI/Brent/NatGas), FX (EURUSD/USDJPY/GBPUSD) | — | `type`*, `limit` (1–500, default 50) |
 | `/market/recommendation-reports/:symbol` | Analyst reports | `:symbol` | — |
 | `/market/price-histories-chart` | OHLCV price history | — | `symbol`, `resolution` (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`, `to` (seconds) |
 | `/market/company-financial/overview` | Key ratios: PE, PB, ROE, EPS, dividend yield | — | `symbol` |
