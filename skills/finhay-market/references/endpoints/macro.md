@@ -41,12 +41,14 @@ Retrieve macroeconomic data for Vietnam or the US.
       - name: country
         in: query
         required: true
-        description: Country code
+        description: Country code. Most types support VN and US only. JP and DE are only valid for GOVERNMENT_10Y_BOND_YIELD.
         schema:
           type: string
           enum:
             - VN
             - US
+            - JP
+            - DE
       - name: period
         in: query
         required: false
@@ -113,6 +115,7 @@ components:
 ### Notes
 
 - `type` and `country` are required. `period` is optional.
+- `JP` (Japan) and `DE` (Germany) are only valid when `type=GOVERNMENT_10Y_BOND_YIELD`. All other types only support `VN` and `US`.
 - Data is cached with a TTL of 360 seconds.
 - `month` is formatted as `YYYY-MM` from year/month stored in DB.
 - `date` is only present when the exact date is available in the source data.
