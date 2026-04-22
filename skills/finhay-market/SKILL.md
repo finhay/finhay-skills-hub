@@ -39,7 +39,7 @@ Use [request.sh](./_shared/scripts/request.sh) for every call.
 | `/market/financial-data/bank-interest-rates` | Bank deposit rates | — | — |
 | `/market/financial-data/cryptos/top-trending` | Top crypto | — | — |
 | `/market/financial-data/macro` | CPI, PMI, interest rates, 10Y bond yields (VN/US/JP/DE) | — | `type`, `country` (`VN`,`US`; `JP`,`DE` only for `GOVERNMENT_10Y_BOND_YIELD`), `period` |
-| `/market/financial-data/economic-calendar-events` | Upcoming economic events for CN/EU/JP/US/UK/VN (CPI releases, Fed meetings…) | — | `weeks` (default 1) |
+| `/market/financial-data/economic-calendar-events` | Upcoming economic events for CN/EU/JP/US/UK/VN (CPI releases, Fed meetings…) | — | `weeks` (default 1), `country` (e.g. `China`, `Vietnam`, `United States`) |
 | `/market/financial-data/market` | Historical price for global indices, Mag7 stocks, commodities, forex — returns `[{date, value}]` desc | — | `type` (SP500, NASDAQ, APPLE, GOLD, EURUSD…), `limit` (default 50, max 500) |
 | `/market/recommendation-reports/:symbol` | Analyst reports | `:symbol` | — |
 | `/market/price-histories-chart` | OHLCV price history | — | `symbol`, `resolution` (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`, `to` (seconds) |

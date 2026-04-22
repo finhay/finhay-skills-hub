@@ -57,7 +57,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 14 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1) | `data` | [detail](./endpoints/economic-calendar-events.md) |
+| 14 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1), `country` (optional, e.g. `China`, `Vietnam`) | `data` | [detail](./endpoints/economic-calendar-events.md) |
 
 ## Reports
 
@@ -107,4 +107,4 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Bank deposit rates | `/market/financial-data/bank-interest-rates` |
 | Top crypto | `/market/financial-data/cryptos/top-trending` |
 | Historical price for global indices, Mag7 stocks, commodities, forex | `/market/financial-data/market?type=<TYPE>` |
-| Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N` |
+| Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |

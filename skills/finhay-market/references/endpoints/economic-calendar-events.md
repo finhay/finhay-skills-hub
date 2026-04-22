@@ -24,6 +24,20 @@ Retrieve upcoming global economic events (CPI releases, Fed meetings, PMI announ
           type: integer
           default: 1
           example: 2
+      - name: country
+        in: query
+        required: false
+        description: Filter by country name. Must match exactly one of the supported values.
+        schema:
+          type: string
+          enum:
+            - China
+            - Euro Area
+            - Japan
+            - United States
+            - United Kingdom
+            - Vietnam
+          example: China
     responses:
       '200':
         description: Successful response
@@ -104,6 +118,7 @@ components:
 ### Notes
 
 - `weeks` defaults to 1 — returns events from today through the next 7 days.
+- `country` is optional — omit to return events for all supported countries.
 - Results are sorted ascending by `date`.
 - Data is cached with a TTL of 1 hour.
 - `actual` is empty string if the event has not yet occurred.
