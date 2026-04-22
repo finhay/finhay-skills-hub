@@ -37,7 +37,10 @@ $Hmac = [Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($
 $Sig  = ($Hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($Payload)) | ForEach-Object { $_.ToString("x2") }) -join ""
 
 $Url = "${BaseUrl}${Endpoint}"
-if ($Query) { $Url += "?$Query" }
+if ($Query) {
+    $EncodedQuery = $Query -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D'
+    $Url += "?$EncodedQuery"
+}
 
 $Headers = @{
     "X-FH-APIKEY"    = $ApiKey

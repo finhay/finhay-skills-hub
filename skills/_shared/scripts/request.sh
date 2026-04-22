@@ -32,7 +32,10 @@ SIG=$(printf '%s' "$PAYLOAD" |
   openssl dgst -sha256 -hmac "$FINHAY_API_SECRET" -binary | xxd -p -c 256)
 
 URL="${FINHAY_BASE_URL:-https://open-api.fhsc.com.vn}${ENDPOINT}"
-[[ -n "$QUERY" ]] && URL="${URL}?${QUERY}"
+if [[ -n "$QUERY" ]]; then
+  ENCODED_QUERY=$(printf '%s' "$QUERY" | sed 's/ /%20/g; s/\[/%5B/g; s/\]/%5D/g')
+  URL="${URL}?${ENCODED_QUERY}"
+fi
 
 TMP=$(mktemp)
 trap 'rm -f "$TMP"' EXIT
