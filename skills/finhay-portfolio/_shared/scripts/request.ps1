@@ -40,6 +40,7 @@ $Url = "${BaseUrl}${Endpoint}"
 if ($Query) { $Url += "?$Query" }
 
 $Headers = @{
+    "User-Agent"     = "finhay-openapi (Skill)"
     "X-FH-APIKEY"    = $ApiKey
     "X-FH-TIMESTAMP" = $Ts
     "X-FH-NONCE"     = $Nonce

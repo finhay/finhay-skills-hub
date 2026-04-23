@@ -43,6 +43,7 @@ trap 'rm -f "$TMP"' EXIT
 CURL_ARGS=(
   -sS --max-time 30 -o "$TMP" -w "%{http_code}"
   -X "$METHOD"
+  -H "User-Agent: finhay-openapi (Skill)"
   -H "X-FH-APIKEY: $FINHAY_API_KEY"
   -H "X-FH-TIMESTAMP: $TS"
   -H "X-FH-NONCE: $NONCE"
