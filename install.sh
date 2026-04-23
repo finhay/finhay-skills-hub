@@ -14,18 +14,19 @@ git clone -b "$BRANCH" "$REPO_URL" "$CURDIR/$WORKDIR"
 cd "$CURDIR/$WORKDIR"
 chmod +x finhay.sh
 
-for skill in skills/*/; do
-  [ -d "$skill" ] || continue
-  rm -f "${skill}finhay.sh" "${skill}finhay.ps1"
-  cp finhay.sh "$skill"
-  cp finhay.ps1 "$skill"
+for skill_dir in skills/*; do
+  [ -d "$skill_dir" ] || continue
+  skill_name=$(basename "$skill_dir")
+  rm -f "skills/$skill_name/finhay.sh" "skills/$skill_name/finhay.ps1"
+  cp finhay.sh "skills/$skill_name/finhay.sh"
+  cp finhay.ps1 "skills/$skill_name/finhay.ps1"
 done
 
-cd "$CURDIR/$WORKDIR/skills"
+cd "skills"
 zip -r "$CURDIR/finhay-market.zip" finhay-market
 zip -r "$CURDIR/finhay-portfolio.zip" finhay-portfolio
 
 cd "$CURDIR"
-rm -rf "$CURDIR/$WORKDIR"
+rm -rf "$WORKDIR"
 
 echo "Done. Created $CURDIR/finhay-market.zip and $CURDIR/finhay-portfolio.zip."

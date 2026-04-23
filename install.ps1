@@ -10,9 +10,12 @@ Remove-Item -Path "$CurDir\$WorkDir" -Recurse -Force -ErrorAction SilentlyContin
 git clone -b $Branch $RepoUrl "$CurDir\$WorkDir"
 
 Get-ChildItem -Path "$CurDir\$WorkDir\skills" -Directory | ForEach-Object {
-    $targetDir = $_.FullName
-    Remove-Item -Path (Join-Path $targetDir "finhay.sh"), (Join-Path $targetDir "finhay.ps1") -Force -ErrorAction SilentlyContinue
-    Copy-Item -Path "$CurDir\$WorkDir\finhay.sh", "$CurDir\$WorkDir\finhay.ps1" -Destination $targetDir -Force
+    $targetSkillDir = $_.FullName
+    $shFile = Join-Path $targetSkillDir "finhay.sh"
+    $psFile = Join-Path $targetSkillDir "finhay.ps1"
+    if (Test-Path $shFile) { Remove-Item -Path $shFile -Force }
+    if (Test-Path $psFile) { Remove-Item -Path $psFile -Force }
+    Copy-Item -Path "$CurDir\$WorkDir\finhay.sh", "$CurDir\$WorkDir\finhay.ps1" -Destination $targetSkillDir -Force
 }
 
 Set-Location "$CurDir\$WorkDir\skills"
