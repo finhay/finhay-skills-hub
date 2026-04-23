@@ -1,4 +1,5 @@
 $RepoUrl = "https://github.com/finhay/finhay-skills-hub.git"
+$Branch = "experimental/finhay-cli"
 $WorkDir = "_tmp_finhay_skills_hub"
 $CurDir = Get-Location
 
@@ -6,7 +7,7 @@ Remove-Item -Path "$CurDir\finhay-market", "$CurDir\finhay-portfolio" -Recurse -
 Remove-Item -Path "$CurDir\finhay-market.zip", "$CurDir\finhay-portfolio.zip" -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$CurDir\$WorkDir" -Recurse -Force -ErrorAction SilentlyContinue
 
-git clone $RepoUrl "$CurDir\$WorkDir"
+git clone -b $Branch $RepoUrl "$CurDir\$WorkDir"
 
 Set-Location "$CurDir\$WorkDir\skills"
 Compress-Archive -Path "finhay-market" -DestinationPath "$CurDir\finhay-market.zip" -Force

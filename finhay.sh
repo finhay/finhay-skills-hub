@@ -6,7 +6,7 @@ CREDS_DIR="$HOME/.finhay/credentials"
 CREDS_FILE="$CREDS_DIR/.env"
 REF_ENV="$HOME/.finhay/ref/.env"
 REPO="finhay/finhay-skills-hub"
-BRANCH="main"
+BRANCH="experimental/finhay-cli"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 API="https://api.github.com/repos/${REPO}"
 

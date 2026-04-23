@@ -3,7 +3,7 @@ $CredsFile = Join-Path $CredsDir ".env"
 $RefEnv = Join-Path $HOME ".finhay\ref\.env"
 $BaseUrlDefault = "https://open-api.fhsc.com.vn"
 $Repo = "finhay/finhay-skills-hub"
-$Branch = "main"
+$Branch = "experimental/finhay-cli"
 
 function Show-Help {
     Write-Host "Usage: .\finhay.ps1 {auth|doctor|infer|request|sync}"
