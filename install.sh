@@ -16,6 +16,7 @@ chmod +x finhay.sh
 
 for skill in skills/*/; do
   [ -d "$skill" ] || continue
+  rm -f "${skill}finhay.sh" "${skill}finhay.ps1"
   cp finhay.sh "$skill"
   cp finhay.ps1 "$skill"
 done
