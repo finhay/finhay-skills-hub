@@ -37,7 +37,10 @@ _REQ() {
     fi
 
     local URL="${BU}${ENDPOINT}"
-    [ -n "$QUERY" ] && URL="${URL}?${QUERY}"
+    if [ -n "$QUERY" ]; then
+        ENCODED_QUERY=$(printf '%s' "$QUERY" | sed 's/ /%20/g; s/\[/%5B/g; s/\]/%5D/g')
+        URL="${URL}?${ENCODED_QUERY}"
+    fi
 
     local TMP=$(mktemp)
     local CODE=$(curl -sS -X "$METHOD" "$URL" \

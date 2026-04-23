@@ -45,7 +45,10 @@ function Request-Internal {
     $Sig = [BitConverter]::ToString($SigBytes).Replace("-", "").ToLower()
     
     $Url = "$BU$Endpoint"
-    if ($Query) { $Url += "?$Query" }
+    if ($Query) {
+        $EncodedQuery = $Query -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D'
+        $Url += "?$EncodedQuery"
+    }
     $Headers = @{ 
         "X-FH-APIKEY" = $AK; 
         "X-FH-USER-ID" = $UI;
