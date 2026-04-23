@@ -37,6 +37,8 @@ Read-only trading data via the Finhay Securities Open API.
 | `/trading/v5/account/{subAccountId}/user-rights` | **User Rights**: Trading permissions and account restrictions. | `{subAccountId}` → ask user |
 | `/trading/market/session` | **Market Session**: Current status of the stock exchange (Open/Closed). | `exchange` (e.g., HOSE) |
 
+For account balance always use a combination of the `/users/v3/users/{userId}/assets/summary` & `/trading/accounts/{subAccountId}/summary` endpoints, to get the most accurate total assets and NAV.
+
 ## Sub-account Selection
 
 - **NORMAL** → `$SUB_ACCOUNT_NORMAL`
