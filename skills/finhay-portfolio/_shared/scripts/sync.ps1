@@ -29,10 +29,9 @@ $now   = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 $token = ($Skill.ToUpper() -replace '[^A-Z0-9]+','_')
 $SK    = "SKILL_${token}_SYNC_AT"
 
-$sharedStale = ($now - [long]($ref["SHARED_SYNC_AT"] ?? 0)) -gt $Ttl
 $skillStale  = ($now - [long]($ref[$SK]               ?? 0)) -gt $Ttl
 
-if (-not ($sharedStale -or $skillStale)) { Write-Host "$Skill`: up-to-date"; exit 0 }
+if (-not $skillStale) { Write-Host "$Skill`: up-to-date"; exit 0 }
 
 $tree = (Invoke-RestMethod "$Api/git/trees/${Branch}?recursive=1").tree |
         Where-Object type -eq "blob"
@@ -73,10 +72,8 @@ function Sync-Component($Name, $Dest, $Prefix) {
     }
 }
 
-if ($sharedStale) { Sync-Component "_shared" (Join-Path $Root "_shared") "_shared" }
 if ($skillStale)  { Sync-Component $Skill   (Join-Path $Root $Skill)    $Skill }
 
-if ($sharedStale) { $ref["SHARED_SYNC_AT"] = $now }
 if ($skillStale)  { $ref[$SK] = $now }
 
 $tmp2 = "$RefEnv.tmp"

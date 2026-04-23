@@ -18,6 +18,9 @@ set -a; source "$CREDS"; set +a
 
 command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required" >&2; exit 1; }
 
+SKILL_NAME="finhay-market"
+SKILL_VERSION="1.0.3"
+
 TS=$(( $(date -u +%s) * 1000 ))
 NONCE=$(openssl rand -hex 16)
 
@@ -40,11 +43,14 @@ trap 'rm -f "$TMP"' EXIT
 CURL_ARGS=(
   -sS --max-time 30 -o "$TMP" -w "%{http_code}"
   -X "$METHOD"
-  -H "User-Agent: finhay-openapi (Skill)"
+  -H "User-Agent: $SKILL_NAME/$SKILL_VERSION"
   -H "X-FH-APIKEY: $FINHAY_API_KEY"
   -H "X-FH-TIMESTAMP: $TS"
   -H "X-FH-NONCE: $NONCE"
   -H "X-FH-SIGNATURE: $SIG"
+  -H "X-Origin-Method: $METHOD"
+  -H "X-Origin-Path: $ENDPOINT"
+  -H "X-Origin-Query: $QUERY"
 )
 
 if [[ -n "$BODY" ]]; then

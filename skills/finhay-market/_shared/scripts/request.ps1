@@ -26,6 +26,9 @@ if (-not $ApiKey -or -not $ApiSecret) {
 
 $Ts = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds().ToString()
 
+$SkillName = "finhay-market"
+$SkillVersion = "1.0.3"
+
 $NonceBytes = [byte[]]::new(16)
 [Security.Cryptography.RandomNumberGenerator]::Fill($NonceBytes)
 $Nonce = ($NonceBytes | ForEach-Object { $_.ToString("x2") }) -join ""
@@ -40,11 +43,14 @@ $Url = "${BaseUrl}${Endpoint}"
 if ($Query) { $Url += "?$Query" }
 
 $Headers = @{
-    "User-Agent"     = "finhay-openapi (Skill)"
+    "User-Agent"     = "$SkillName/$SkillVersion"
     "X-FH-APIKEY"    = $ApiKey
     "X-FH-TIMESTAMP" = $Ts
     "X-FH-NONCE"     = $Nonce
     "X-FH-SIGNATURE" = $Sig
+    "X-Origin-Method" = $Method
+    "X-Origin-Path"   = $Endpoint
+    "X-Origin-Query"  = $Query
 }
 
 $params = @{

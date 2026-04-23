@@ -23,10 +23,9 @@ now=$(date -u +%s)
 TOKEN=$(tr '[:lower:]' '[:upper:]' <<<"$SKILL" | tr -c 'A-Z0-9' '_')
 SK="SKILL_${TOKEN}_SYNC_AT"
 
-shared_stale=$(( now - ${SHARED_SYNC_AT:-0} > TTL ))
 skill_stale=$(( now - ${!SK:-0} > TTL ))
 
-(( shared_stale || skill_stale )) || { echo "$SKILL: up-to-date"; exit 0; }
+(( skill_stale )) || { echo "$SKILL: up-to-date"; exit 0; }
 
 command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required" >&2; exit 1; }
 
@@ -62,14 +61,12 @@ sync_component() {
   echo "${name}: synced (${ver})"
 }
 
-(( shared_stale )) && sync_component "_shared" "${ROOT}/_shared" "_shared"
 (( skill_stale  )) && sync_component "$SKILL"  "${ROOT}/${SKILL}" "$SKILL"
 
 TMPREF=$(mktemp)
 trap 'rm -f "$TMPREF"' EXIT
 
-[[ -f "$REF_ENV" ]] && grep -vE "^(SHARED_SYNC_AT|${SK})=" "$REF_ENV" > "$TMPREF" || true
-(( shared_stale )) && echo "SHARED_SYNC_AT=$now" >> "$TMPREF"
+[[ -f "$REF_ENV" ]] && grep -vE "^(${SK})=" "$REF_ENV" > "$TMPREF" || true
 (( skill_stale  )) && echo "${SK}=$now" >> "$TMPREF"
 
 mv "$TMPREF" "$REF_ENV"
