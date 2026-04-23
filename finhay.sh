@@ -114,6 +114,7 @@ CMD_INFER() {
     [ -f "$CREDS_FILE" ] && grep -vE '^(USER_ID|SUB_ACCOUNT_)' "$CREDS_FILE" > "$TMP" || true
     
     echo "USER_ID=$USER_ID" >> "$TMP"
+    echo "export USER_ID=\"$USER_ID\""
     
     jq -r '(.result // .data // [])[]? | [.type, .id, .sub_account_ext] | @tsv' <<<"$SBA" |
     while IFS=$'\t' read -r TYPE ID EXT; do
