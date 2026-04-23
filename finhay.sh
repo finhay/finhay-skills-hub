@@ -141,8 +141,9 @@ CMD_SYNC() {
     done <<< "$FILES"
     rm -rf "skills/$SKILL"; mkdir -p "skills/$SKILL"
     cp -a "$tmp/$SKILL/." "skills/$SKILL/"
-    ln -sf ../../finhay.sh "skills/$SKILL/finhay.sh"
-    ln -sf ../../finhay.ps1 "skills/$SKILL/finhay.ps1"
+    curl -sf "${RAW}/finhay.sh" -o "skills/$SKILL/finhay.sh"
+    curl -sf "${RAW}/finhay.ps1" -o "skills/$SKILL/finhay.ps1"
+    chmod +x "skills/$SKILL/finhay.sh"
     echo "✅ $SKILL synced."
 }
 

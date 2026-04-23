@@ -161,8 +161,8 @@ function Cmd-Sync {
     if (-not (Test-Path "skills")) { New-Item -ItemType Directory -Path "skills" | Out-Null }
     if (Test-Path $LocalSkillPath) { Remove-Item -Path $LocalSkillPath -Recurse -Force }
     Copy-Item -Path (Join-Path $Tmp $Skill) -Destination "skills" -Recurse -Force
-    New-Item -ItemType SymbolicLink -Path (Join-Path $LocalSkillPath "finhay.sh") -Target "../../finhay.sh" -Force | Out-Null
-    New-Item -ItemType SymbolicLink -Path (Join-Path $LocalSkillPath "finhay.ps1") -Target "../../finhay.ps1" -Force | Out-Null
+    Invoke-WebRequest -Uri "$RawUrl/finhay.sh" -OutFile (Join-Path $LocalSkillPath "finhay.sh")
+    Invoke-WebRequest -Uri "$RawUrl/finhay.ps1" -OutFile (Join-Path $LocalSkillPath "finhay.ps1")
     Remove-Item -Path $Tmp -Recurse -Force
     Write-Host "✅ $Skill synced."
 }
