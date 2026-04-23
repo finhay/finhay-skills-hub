@@ -1,6 +1,6 @@
 # Market Endpoints
 
-Signing: see [authentication.md](../_shared/authentication.md). Query params are not signed. No `USER_ID` needed.
+Signing: use `./finhay.sh request` (or `.\finhay.ps1 request`).
 
 ## Errors
 
@@ -59,25 +59,33 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 |---|------|--------|---------|--------|
 | 14 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1), `country` (optional, e.g. `China`, `Vietnam`) | `data` | [detail](./endpoints/economic-calendar-events.md) |
 
+## Funds
+
+| # | Path | Params | Res key | Detail |
+|---|------|--------|---------|--------|
+| 15 | `/market/funds` | — | `data` | [detail](./endpoints/funds.md) |
+| 16 | `/market/funds/:fund/portfolio` | `:fund`* (path), `month` | `data` | [detail](./endpoints/fund-portfolio.md) |
+| 17 | `/market/funds/:fund/months` | `:fund`* (path) | `data` | [detail](./endpoints/fund-months.md) |
+
 ## Reports
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 15 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
+| 18 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
 
 ## Price History
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 16 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
+| 19 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
 
 ## Company Financial
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 17 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
-| 18 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
-| 19 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
+| 20 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
+| 21 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
+| 22 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
 
 ---
 
@@ -108,3 +116,5 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Top crypto | `/market/financial-data/cryptos/top-trending` |
 | Historical price for global indices, Mag7 stocks, commodities, forex | `/market/financial-data/market?type=<TYPE>` |
 | Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |
+| Fund list and details | `/market/funds` |
+| Fund portfolio and holdings | `/market/funds/:fund/portfolio` |

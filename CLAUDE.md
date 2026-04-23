@@ -5,7 +5,7 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 ## Architecture
 
 - **skills/** — 2 skills (each has `SKILL.md` + endpoint references)
-- **skills/_shared/** — Authentication, constraints, request script
+- **finhay.sh** / **finhay.ps1** — Unified CLI for Auth, Doctor, Infer, and Requests
 - **.claude-plugin/** — Plugin metadata
 
 ## Skills
@@ -17,13 +17,18 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 
 ## Prerequisites
 
-- `bash`, `curl`, `openssl` (macOS/Linux) hoặc PowerShell 5.1+ (Windows)
+- `bash`, `curl`, `openssl`, `jq`, `xxd` (macOS/Linux) or PowerShell 5.1+ (Windows)
 - `~/.finhay/credentials/.env` with `FINHAY_API_KEY` and `FINHAY_API_SECRET`
 
-## API Requests
+## CLI Commands
 
-All skills use `skills/_shared/scripts/request.sh` for credential loading, HMAC-SHA256 signing, and error checking.
+All interactions use the unified `finhay.sh` (or `finhay.ps1`) script.
+
+- `auth`: Setup API credentials interactively.
+- `doctor`: Check environment and dependency status.
+- `infer`: Automatically resolve `USER_ID` and sub-account IDs.
+- `request`: Make signed API calls.
 
 ```bash
-skills/_shared/scripts/request.sh GET /market/stock-realtime "symbol=VNM"
+./finhay.sh request GET /market/stock-realtime "symbol=VNM"
 ```
