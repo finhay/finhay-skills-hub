@@ -32,6 +32,7 @@ Read-only trading data via the Finhay Securities Open API.
 | `/trading/v2/sub-accounts/{subAccountId}/portfolio` | **Stock Holdings**: Real-time quantity, average price, and market value. | `{subAccountId}` → ask user |
 | `/trading/sub-accounts/{subAccountId}/orders` | **Order History**: History of buy/sell transactions. | `{subAccountId}`, `fromDate`, `toDate` |
 | `/trading/v1/accounts/{subAccountId}/order-book` | **Order Book**: List of current day's active orders. | `{subAccountId}` → ask user |
+| `/trading/v1/accounts/{subAccountId}/order-book/{orderId}` | **Order Detail**: Granular status and info for a specific order. | `{subAccountId}`, `{orderId}` |
 | `/trading/pnl-today/{userId}` | **Daily P&L**: Profit and loss performance for the current session. | `{userId}` → `$USER_ID` |
 | `/trading/v5/account/{subAccountId}/user-rights` | **User Rights**: Trading permissions and account restrictions. | `{subAccountId}` → ask user |
 | `/trading/market/session` | **Market Session**: Current status of the stock exchange (Open/Closed). | `exchange` (e.g., HOSE) |

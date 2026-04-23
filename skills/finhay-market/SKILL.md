@@ -37,9 +37,15 @@ Read-only market data via the Finhay Securities Open API.
 | `/market/financial-data/gold-chart` | **Gold Charts**: Historical gold price data for N days. | `days` |
 | `/market/financial-data/silver-chart` | **Silver Charts**: Historical silver price data for N days. | `days` |
 | `/market/financial-data/gold-providers` | **Gold by Provider**: Gold prices from PNJ, DOJI, SJC, etc. | — |
+| `/market/financial-data/metal-providers` | **Metals by Provider**: Silver and other metal prices by provider. | — |
 | `/market/financial-data/bank-interest-rates` | **Interest Rates**: Current bank deposit rates. | — |
 | `/market/financial-data/cryptos/top-trending` | **Crypto Trends**: List of trending cryptocurrencies. | — |
 | `/market/financial-data/macro` | **Macro Indicators**: CPI, PMI, and national interest rates. | `type`, `country`, `period` |
+| `/market/financial-data/economic-calendar-events` | **Economic Calendar**: Upcoming events (CPI, Fed meetings). | `weeks`, `country` |
+| `/market/financial-data/market` | **Global Indices**: Historical prices for SP500, NASDAQ, Mag7, etc. | `type`, `limit` |
+| `/market/funds` | **Fund List**: Available mutual funds and their basic info. | — |
+| `/market/funds/:fund/portfolio` | **Fund Portfolio**: Holdings breakdown for a specific fund. | `:fund` (path), `month` |
+| `/market/funds/:fund/months` | **Fund Months**: Available portfolio reporting months. | `:fund` (path) |
 | `/market/recommendation-reports/:symbol` | **Analyst Reports**: Professional stock recommendation reports. | `:symbol` (path) |
 | `/market/price-histories-chart` | **Historical Data**: OHLCV data for technical analysis and charts. | `symbol`, `resolution`, `from`, `to` |
 | `/market/company-financial/overview` | **Corporate Ratios**: Key metrics (PE, PB, ROE, EPS). | `symbol` |
