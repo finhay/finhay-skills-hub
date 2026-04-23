@@ -56,5 +56,6 @@ Read-only market data via the Finhay Securities Open API.
 
 - **Read-only**: Execute `GET` requests only.
 - **Privacy**: Mask sensitive credentials in all output.
+- **Credentials**: If `FINHAY_API_KEY` or `FINHAY_API_SECRET` are missing, stop and ask the user to provide them or run `./finhay.sh auth`.
 - **Parameters**: Pass exactly one identifier for stock quotes (symbol, symbols, or exchange).
 - **Timeframes**: Price history timestamps must be in **seconds**. Default to the last 5 years if range is not provided.

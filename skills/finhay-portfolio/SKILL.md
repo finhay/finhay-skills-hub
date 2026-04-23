@@ -46,4 +46,5 @@ Read-only trading data via the Finhay Securities Open API.
 
 - **Read-only**: Execute `GET` requests only.
 - **Privacy**: Mask API keys and sensitive credentials in all output.
+- **Credentials**: If `FINHAY_API_KEY` or `FINHAY_API_SECRET` are missing, stop and ask the user to provide them or run `./finhay.sh auth`.
 - **Sub-accounts**: Always confirm the specific account (Normal/Margin) with the user before querying detail endpoints.
