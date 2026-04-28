@@ -50,6 +50,7 @@ Read-only market data via the Finhay Securities Open API.
 | `/market/financial-data/bank-interest-rates` | **Interest Rates**: Current bank deposit rates. | — |
 | `/market/financial-data/cryptos/top-trending` | **Crypto Trends**: List of trending cryptocurrencies. | — |
 | `/market/financial-data/macro` | **Macro Indicators**: CPI, PMI, and national interest rates. | `type`, `country` (`VN`,`US`; `JP`,`DE` only for `GOVERNMENT_10Y_BOND_YIELD`), `period` |
+| `/market/financial-data/trading-economics` | **Trading Economics**: Historical economic indicators by country and category. | `country` (**required**: `China`, `Euro Area`, `Japan`, `United States`, `United Kingdom`, `Vietnam`), `category` (`GDP`, `Labour`, `Prices`, `Money`, `Trade`, `Government`, `Business`, `Consumer`, `Housing`), `year` |
 | `/market/financial-data/economic-calendar-events` | **Economic Calendar**: Upcoming events for CN/EU/JP/US/UK/VN (CPI, Fed meetings). | `weeks` (default 1), `country` (e.g. `China`, `Vietnam`, `United States`) |
 | `/market/financial-data/market` | **Global Indices**: Historical price for global indices, Mag7 stocks, commodities, forex — returns `[{date, value}]` desc. | `type` (SP500, NASDAQ, APPLE, GOLD, EURUSD…), `limit` (default 50, max 500) |
 | `/market/funds` | **Fund List**: Available mutual funds and their basic info. | — |
@@ -59,7 +60,7 @@ Read-only market data via the Finhay Securities Open API.
 | `/market/price-histories-chart` | **Historical Data**: OHLCV data for technical analysis and charts. | `symbol`, `resolution`, `from`, `to` |
 | `/market/company-financial/overview` | **Corporate Ratios**: Key metrics (PE, PB, ROE, EPS). | `symbol` |
 | `/market/company-financial/analysis` | **Financial Analysis**: Historical ratio trends by period. | `symbol`, `period` |
-| `/market/v2/financial-statement/statement` | **Financial Reports**: Income statements and balance sheets. | `symbol`, `type`, `period` |
+| `/market/v2/financial-statement/statement` | **Financial Reports**: Income statements, cash flow and balance sheets. | `symbol`, `type`, `period` |
 
 ## Constraints
 

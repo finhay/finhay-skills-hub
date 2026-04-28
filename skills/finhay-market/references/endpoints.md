@@ -46,46 +46,47 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | 10 | `/market/financial-data/bank-interest-rates` | — | `data` | [detail](./endpoints/bank-interest-rates.md) |
 | 11 | `/market/financial-data/cryptos/top-trending` | — | `data` | [detail](./endpoints/cryptos-top-trending.md) |
 | 12 | `/market/financial-data/macro` | `type`*, `country`*, `period` | `data` | [detail](./endpoints/macro.md) |
+| 13 | `/market/financial-data/trading-economics` | `country`* (enum), `category` (enum), `year` | `data` | [detail](./endpoints/trading-economics.md) |
 
 ## Financial Data — Market Indices & Assets
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 13 | `/market/financial-data/market` | `type`* (enum), `limit` (default 50, max 500) | `data` | [detail](./endpoints/market-data.md) |
+| 14 | `/market/financial-data/market` | `type`* (enum), `limit` (default 50, max 500) | `data` | [detail](./endpoints/market-data.md) |
 
 ## Financial Data — Economic Calendar
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 14 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1), `country` (optional, e.g. `China`, `Vietnam`) | `data` | [detail](./endpoints/economic-calendar-events.md) |
+| 15 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1), `country` (optional, e.g. `China`, `Vietnam`) | `data` | [detail](./endpoints/economic-calendar-events.md) |
 
 ## Funds
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 15 | `/market/funds` | — | `data` | [detail](./endpoints/funds.md) |
-| 16 | `/market/funds/:fund/portfolio` | `:fund`* (path), `month` | `data` | [detail](./endpoints/fund-portfolio.md) |
-| 17 | `/market/funds/:fund/months` | `:fund`* (path) | `data` | [detail](./endpoints/fund-months.md) |
+| 16 | `/market/funds` | — | `data` | [detail](./endpoints/funds.md) |
+| 17 | `/market/funds/:fund/portfolio` | `:fund`* (path), `month` | `data` | [detail](./endpoints/fund-portfolio.md) |
+| 18 | `/market/funds/:fund/months` | `:fund`* (path) | `data` | [detail](./endpoints/fund-months.md) |
 
 ## Reports
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 18 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
+| 19 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
 
 ## Price History
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 19 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
+| 20 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
 
 ## Company Financial
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 20 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
-| 21 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
-| 22 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
+| 21 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
+| 22 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
+| 23 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
 
 ---
 
@@ -112,6 +113,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Gold chart (N days) | `/market/financial-data/gold-chart?days=N` |
 | Silver equivalents | replace `gold` → `silver` |
 | Macro (CPI, PMI, interest rates...) | `/market/financial-data/macro` |
+| Historical economic indicators by country (GDP, inflation, trade...) | `/market/financial-data/trading-economics?country=<NAME>&category=<CAT>` |
 | Bank deposit rates | `/market/financial-data/bank-interest-rates` |
 | Top crypto | `/market/financial-data/cryptos/top-trending` |
 | Historical price for global indices, Mag7 stocks, commodities, forex | `/market/financial-data/market?type=<TYPE>` |
