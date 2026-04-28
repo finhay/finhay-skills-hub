@@ -51,7 +51,7 @@ curl -sSL https://raw.githubusercontent.com/finhay/finhay-skills-hub/main/finhay
 
 **Windows (PowerShell):**
 ```powershell
-curl -sSL https://raw.githubusercontent.com/finhay/finhay-skills-hub/main/finhay.ps1 -o finhay.ps1; .\finhay.ps1 auth
+irm https://raw.githubusercontent.com/finhay/finhay-skills-hub/main/finhay.ps1 | iex; Cmd-Auth
 ```
 
 ### Method 3: Ask an AI Agent
