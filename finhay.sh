@@ -9,8 +9,6 @@ BRANCH="main"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 API="https://api.github.com/repos/${REPO}"
 
-exec 3< /dev/tty
-
 _REQ() {
     local METHOD="$1"
     local ENDPOINT="$2"
@@ -64,27 +62,33 @@ _REQ() {
 }
 
 CMD_AUTH() {
-    if [ -f "$CREDS_FILE" ]; then
-        echo "WARNING: Credentials file already exists at $CREDS_FILE"
-        printf "Do you want to overwrite it? (y/N): " >&2
-        read -r confirm <&3
-        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-            echo "Operation cancelled."
-            return 0
-        fi
-    fi
     echo "Finhay OpenAPI Authentication"
-    [ ! -d "$CREDS_DIR" ] && mkdir -p "$CREDS_DIR"
-    printf "Enter API Key: " >&2
-    read -r ak <&3
-    printf "Enter Secret: " >&2
+    if [ -f "$CREDS_FILE" ]; then
+        read -p "Credentials already exist at $CREDS_FILE. Overwrite? (y/N): " confirm
+        [[ ! "$confirm" =~ ^[Yy]$ ]] && return 0
+    fi
+
+    mkdir -p "$CREDS_DIR"
+    read -p "Enter API Key: " ak
+    
+    printf "Enter Secret Key: "
     as=""
-    while IFS= read -r -s -n1 c <&3; do
-        if [[ -z "$c" ]]; then printf "\n" >&2; break; fi
-        if [[ "$c" == $'\177' || "$c" == $'\b' ]]; then
-            if [ -n "$as" ]; then as="${as%?}"; printf "\b \b" >&2; fi
-        else as+="$c"; printf "*" >&2; fi
+    while IFS= read -r -s -n1 char; do
+        if [[ -z $char ]]; then
+            echo ""
+            break
+        fi
+        if [[ $char == $'\177' ]]; then
+            if [ -n "$as" ]; then
+                as="${as%?}"
+                printf "\b \b"
+            fi
+        else
+            as+="$char"
+            printf "*"
+        fi
     done
+    
     cat << EOF > "$CREDS_FILE"
 FINHAY_API_KEY=$ak
 FINHAY_API_SECRET=$as
@@ -92,6 +96,7 @@ FINHAY_BASE_URL=https://open-api.fhsc.com.vn
 EOF
     chmod 600 "$CREDS_FILE"
     echo "Saved to $CREDS_FILE"
+    echo "Successfully authenticated."
 }
 
 CMD_DOCTOR() {

@@ -69,29 +69,27 @@ function Request-Internal {
 }
 
 function Cmd-Auth {
-    if (Test-Path $CredsFile) {
-        Write-Host "WARNING: Credentials file already exists at $CredsFile" -ForegroundColor Yellow
-        $confirm = Read-Host "Do you want to overwrite it? (y/N)"
-        if ($confirm -notmatch "^[Yy]$") {
-            Write-Host "Operation cancelled."
-            return
-        }
-    }
     Write-Host "Finhay OpenAPI Authentication"
+    if (Test-Path $CredsFile) {
+        $confirm = Read-Host "Credentials already exist at $CredsFile. Overwrite? (y/N)"
+        if ($confirm -notmatch "^[Yy]$") { return }
+    }
+
     if (-not (Test-Path $CredsDir)) { New-Item -ItemType Directory -Path $CredsDir | Out-Null }
     $ak = Read-Host "Enter API Key"
-    Write-Host -NoNewline "Enter Secret: "
-    $as = ""
-    while($true) {
-        $key = [System.Console]::ReadKey($true)
-        if ($key.Key -eq [System.ConsoleKey]::Enter) { Write-Host ""; break }
-        if ($key.Key -eq [System.ConsoleKey]::Backspace) {
-            if ($as.Length -gt 0) { $as = $as.Substring(0, $as.Length - 1); Write-Host -NoNewline "`b `b" }
-        } else { $as += $key.KeyChar; Write-Host -NoNewline "*" }
+    
+    $secureSecret = Read-Host "Enter Secret Key" -AsSecureString
+    $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureSecret)
+    try {
+        $as = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    } finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
     }
+
     $Content = "FINHAY_API_KEY=$ak`nFINHAY_API_SECRET=$as`nFINHAY_BASE_URL=$BaseUrlDefault"
     Set-Content -Path $CredsFile -Value $Content
     Write-Host "Saved to $CredsFile"
+    Write-Host "Successfully authenticated."
 }
 
 function Cmd-Doctor {
