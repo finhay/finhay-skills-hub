@@ -63,9 +63,13 @@ _REQ() {
 
 CMD_AUTH() {
     echo "Finhay OpenAPI Authentication"
-    # Use /dev/tty for input if available (needed for curl | bash)
+    # Use /dev/tty for input ONLY if it is available and writable
     local input_src="/dev/stdin"
-    [ -c /dev/tty ] && input_src="/dev/tty"
+    if [ -t 0 ]; then
+        input_src="/dev/stdin"
+    elif [ -c /dev/tty ] && [ -w /dev/tty ]; then
+        input_src="/dev/tty"
+    fi
 
     if [ -f "$CREDS_FILE" ]; then
         printf "Credentials already exist at %s. Overwrite? (y/N): " "$CREDS_FILE"
