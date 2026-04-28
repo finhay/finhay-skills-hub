@@ -64,7 +64,16 @@ _REQ() {
 }
 
 CMD_AUTH() {
-    echo "Finhay API Setup"
+    if [ -f "$CREDS_FILE" ]; then
+        echo "WARNING: Credentials file already exists at $CREDS_FILE"
+        printf "Do you want to overwrite it? (y/N): " >&2
+        read -r confirm <&3
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            echo "Operation cancelled."
+            return 0
+        fi
+    fi
+    echo "Finhay OpenAPI Authentication"
     [ ! -d "$CREDS_DIR" ] && mkdir -p "$CREDS_DIR"
     printf "Enter API Key: " >&2
     read -r ak <&3

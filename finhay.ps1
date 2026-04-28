@@ -69,7 +69,15 @@ function Request-Internal {
 }
 
 function Cmd-Auth {
-    Write-Host "Finhay API Setup"
+    if (Test-Path $CredsFile) {
+        Write-Host "WARNING: Credentials file already exists at $CredsFile" -ForegroundColor Yellow
+        $confirm = Read-Host "Do you want to overwrite it? (y/N)"
+        if ($confirm -notmatch "^[Yy]$") {
+            Write-Host "Operation cancelled."
+            return
+        }
+    }
+    Write-Host "Finhay OpenAPI Authentication"
     if (-not (Test-Path $CredsDir)) { New-Item -ItemType Directory -Path $CredsDir | Out-Null }
     $ak = Read-Host "Enter API Key"
     Write-Host -NoNewline "Enter Secret: "

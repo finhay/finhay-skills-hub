@@ -42,14 +42,21 @@ export FINHAY_API_SECRET="your_api_secret"
 ```
 
 ### Method 2: Credentials File
-Run the interactive setup and follow the prompts:
+Run the interactive setup in one line:
+
+**Linux / macOS (Bash):**
 ```bash
-./finhay.sh auth
+curl -sSL https://raw.githubusercontent.com/finhay/finhay-skills-hub/main/finhay.sh | bash -s auth
 ```
-Then, resolve your user identity and sub-accounts (required for Portfolio skill):
-```bash
-./finhay.sh infer
+
+**Windows (PowerShell):**
+```powershell
+curl -sSL https://raw.githubusercontent.com/finhay/finhay-skills-hub/main/finhay.ps1 -o finhay.ps1; .\finhay.ps1 auth
 ```
+
+### Method 3: Ask an AI Agent
+If you are using **Claude Code**, **Cursor**, or another AI agent with terminal access, you can simply ask it:
+> "Help me set up my Finhay API credentials."
 
 ### CLI Command Reference
 

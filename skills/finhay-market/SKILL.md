@@ -26,6 +26,15 @@ Read-only market data via the Finhay Securities Open API.
 ./finhay.sh request GET /market/price-histories-chart "symbol=VNM&resolution=1D&from=1609459200&to=1704067200"
 ```
 
+## CLI Command Reference
+
+| Command | Description |
+|---------|-------------|
+| `auth` | Configure API credentials interactively |
+| `doctor` | Verify system dependencies and setup status |
+| `request` | Execute signed API requests |
+| `sync` | Update local skill definitions from source |
+
 ## Endpoints
 
 | Endpoint | Description | Params |

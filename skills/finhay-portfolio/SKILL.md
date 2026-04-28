@@ -23,6 +23,16 @@ Read-only trading data via the Finhay Securities Open API.
 ./finhay.sh request GET "/trading/accounts/$SUB_ACCOUNT_NORMAL/summary"
 ```
 
+## CLI Command Reference
+
+| Command | Description |
+|---------|-------------|
+| `auth` | Configure API credentials interactively |
+| `doctor` | Verify system dependencies and setup status |
+| `infer` | Resolve `USER_ID` and trading sub-account IDs |
+| `request` | Execute signed API requests |
+| `sync` | Update local skill definitions from source |
+
 ## Endpoints
 
 | Endpoint | Description | Params |
