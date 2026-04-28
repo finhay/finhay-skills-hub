@@ -63,17 +63,23 @@ _REQ() {
 
 CMD_AUTH() {
     echo "Finhay OpenAPI Authentication"
+    # Use /dev/tty for input if available (needed for curl | bash)
+    local input_src="/dev/stdin"
+    [ -c /dev/tty ] && input_src="/dev/tty"
+
     if [ -f "$CREDS_FILE" ]; then
-        read -p "Credentials already exist at $CREDS_FILE. Overwrite? (y/N): " confirm
+        printf "Credentials already exist at %s. Overwrite? (y/N): " "$CREDS_FILE"
+        read -r confirm < "$input_src"
         [[ ! "$confirm" =~ ^[Yy]$ ]] && return 0
     fi
 
     mkdir -p "$CREDS_DIR"
-    read -p "Enter API Key: " ak
+    printf "Enter API Key: "
+    read -r ak < "$input_src"
     
     printf "Enter Secret Key: "
     as=""
-    while IFS= read -r -s -n1 char; do
+    while IFS= read -r -s -n1 char < "$input_src"; do
         if [[ -z $char ]]; then
             echo ""
             break
