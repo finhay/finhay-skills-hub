@@ -98,3 +98,20 @@ Verify your setup and dependencies:
 
 ## 📜 License
 This project is released under the [MIT License](./LICENSE).
+
+## 📌 Disclaimer
+Finhay Skills Hub is an informational tool only. Finhay Skills Hub and its outputs are provided to you on an “as is” and “as available” basis, without representation or warranty of any kind.
+
+Finhay Skills Hub does not constitute investment, financial, securities trading or any other form of professional advice; does not represent a recommendation to buy, sell, hold or trade any stocks, bonds, fund certificates, securities or financial products; and does not guarantee the accuracy, timeliness or completeness of any data, analysis or content presented.
+
+Your use of Finhay Skills Hub and any information provided in connection with this feature is at your own risk. You are solely responsible for evaluating the information provided and for all investment or trading decisions made by you.
+
+Finhay does not endorse, verify or guarantee any AI-generated information. Any AI-generated information or summary should not be solely relied upon for decision making. AI-generated content may include or reflect information, views and opinions of third parties, and may also include errors, biases or outdated information.
+
+Finhay is not responsible for any losses or damages incurred as a result of your use of or reliance on the Finhay Skills Hub feature. Finhay may modify or discontinue the Finhay Skills Hub feature at its discretion, and functionality may vary by region, account type or user profile.
+
+Securities trading and financial products involve market risk, liquidity risk, interest rate risk, credit risk and other risks. The value of your investment may go down or up, and you may not get back the full amount invested. You are solely responsible for your investment decisions, and Finhay is not liable for any losses you may incur.
+
+Past performance is not a reliable predictor of future performance. You should only invest in products you are familiar with and where you understand the risks. You should carefully consider your investment experience, financial situation, investment objectives and risk tolerance, and consult an independent professional adviser if needed before making any investment decision.
+
+This material should not be construed as investment, financial, securities trading or any other form of advice.
