@@ -57,10 +57,10 @@ Read-only market data via the Finhay Securities Open API.
 | `/market/funds/:fund/portfolio` | **Fund Portfolio**: Holdings breakdown for a specific fund. | `:fund` (path), `month` |
 | `/market/funds/:fund/months` | **Fund Months**: Available portfolio reporting months. | `:fund` (path) |
 | `/market/recommendation-reports/:symbol` | **Analyst Reports**: Professional stock recommendation reports. | `:symbol` (path) |
-| `/market/price-histories-chart` | **Historical Data**: OHLCV data for technical analysis and charts. | `symbol`, `resolution`, `from`, `to` |
+| `/market/price-histories-chart` | **Historical Data**: OHLCV data. | `symbol`, `resolution` (`1D`,`1H`,`4H`,`30`,`15`,`5`), `from`, `to` (seconds) |
 | `/market/company-financial/overview` | **Corporate Ratios**: Key metrics (PE, PB, ROE, EPS). | `symbol` |
-| `/market/company-financial/analysis` | **Financial Analysis**: Historical ratio trends by period. | `symbol`, `period` |
-| `/market/v2/financial-statement/statement` | **Financial Reports**: Income statements, cash flow and balance sheets. | `symbol`, `type`, `period` |
+| `/market/company-financial/analysis` | **Financial Analysis**: Ratio trends. | `symbol`, `period` (`annual`,`quarterly`) |
+| `/market/v2/financial-statement/statement` | **Financial Reports**: Income/Balance/Cash flow. | `symbol`, `type` (`income-statement`,`balance-sheet`,`cash-flow`), `period` (`annual`,`quarterly`) |
 
 ## Constraints
 
