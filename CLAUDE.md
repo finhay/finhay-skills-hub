@@ -32,3 +32,21 @@ All interactions use the unified `finhay.sh` (or `finhay.ps1`) script.
 ```bash
 ./finhay.sh request GET /market/stock-realtime "symbol=VNM"
 ```
+
+## Adding a New Endpoint to a Skill
+
+When a new API endpoint is added to the backend (e.g. `vnsc-datafeed-service`), update **all three** of the following files — missing any one will cause the skill to be incomplete:
+
+1. **Create** `skills/<skill>/references/endpoints/<name>.md`
+   - OpenAPI spec (path, parameters, response schema with all fields)
+   - `### Response Key` section (e.g. `data` or `result`)
+   - `### Components` section with all referenced schemas
+   - `### Notes` section for edge cases, defaults, enums, error behavior
+
+2. **Update** `skills/<skill>/references/endpoints.md`
+   - Add a row to the relevant endpoint table (assign the next available `#` number)
+   - Add a row to the "Choosing the Right … Endpoint" guide at the bottom
+
+3. **Update** `skills/<skill>/SKILL.md`
+   - Add a row to the `## Endpoints` table with a one-line description and param summary
+

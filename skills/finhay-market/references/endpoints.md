@@ -47,6 +47,8 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | 11 | `/market/financial-data/cryptos/top-trending` | — | `data` | [detail](./endpoints/cryptos-top-trending.md) |
 | 12 | `/market/financial-data/macro` | `type`*, `country`*, `period` | `data` | [detail](./endpoints/macro.md) |
 | 13 | `/market/financial-data/trading-economics` | `country`* (enum), `category` (enum), `year` | `data` | [detail](./endpoints/trading-economics.md) |
+| 24 | `/market/financial-data/global-news` | `category` (enum), `page`, `page_size` (max 50, default 20) | `data` | [detail](./endpoints/global-news.md) |
+| 25 | `/market/financial-data/global-news/:id` | `:id`* (path) | `data` | [detail](./endpoints/global-news.md) |
 
 ## Financial Data — Market Indices & Assets
 
@@ -118,5 +120,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Top crypto | `/market/financial-data/cryptos/top-trending` |
 | Historical price for global indices, Mag7 stocks, commodities, forex | `/market/financial-data/market?type=<TYPE>` |
 | Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |
+| Global financial news (forex, commodities, crypto, macro…) | `/market/financial-data/global-news?category=<CAT>&page=N` |
+| Full article content by ID | `/market/financial-data/global-news/:id` |
 | Fund list and details | `/market/funds` |
 | Fund portfolio and holdings | `/market/funds/:fund/portfolio` |

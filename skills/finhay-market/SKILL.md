@@ -51,6 +51,8 @@ Read-only market data via the Finhay Securities Open API.
 | `/market/financial-data/cryptos/top-trending` | **Crypto Trends**: List of trending cryptocurrencies. | — |
 | `/market/financial-data/macro` | **Macro Indicators**: CPI, PMI, and national interest rates. | `type`, `country` (`VN`,`US`; `JP`,`DE` only for `GOVERNMENT_10Y_BOND_YIELD`), `period` |
 | `/market/financial-data/trading-economics` | **Trading Economics**: Historical economic indicators by country and category. | `country` (**required**: `China`, `Euro Area`, `Japan`, `United States`, `United Kingdom`, `Vietnam`), `category` (`GDP`, `Labour`, `Prices`, `Money`, `Trade`, `Government`, `Business`, `Consumer`, `Housing`), `year` |
+| `/market/financial-data/global-news` | **Global News**: Paginated global financial news filtered by category. | `category` (`forex`, `commodities`, `economic-indicators`, `stock-market`, `cryptocurrency`), `page`, `page_size` (max 50) |
+| `/market/financial-data/global-news/:id` | **Global News Detail**: Full article content by ID. | `:id` (path, **required**) |
 | `/market/financial-data/economic-calendar-events` | **Economic Calendar**: Upcoming events for CN/EU/JP/US/UK/VN (CPI, Fed meetings). | `weeks` (default 1), `country` (e.g. `China`, `Vietnam`, `United States`) |
 | `/market/financial-data/market` | **Global Indices**: Historical price for global indices, Mag7 stocks, commodities, forex — returns `[{date, value}]` desc. | `type` (SP500, NASDAQ, APPLE, GOLD, EURUSD…), `limit` (default 50, max 500) |
 | `/market/funds` | **Fund List**: Available mutual funds and their basic info. | — |
