@@ -35,6 +35,17 @@ Read-only market data via the Finhay Securities Open API.
 | `request` | Execute signed API requests |
 | `sync` | Update local skill definitions from source |
 
+### Agent Attribution
+
+> **REQUIRED**: Export `AGENT_NAME` before making any request. Use your tool's canonical lowercase identifier in `kebab-case` (e.g. `claude-code`). Any value is accepted as long as it consistently identifies your tool.
+
+```bash
+export AGENT_NAME=claude-code
+./finhay.sh request GET /market/stock-realtime "symbol=VNM"
+```
+
+Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
+
 ## Endpoints
 
 | Endpoint | Description | Params |

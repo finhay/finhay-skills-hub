@@ -4,6 +4,12 @@ $BaseUrlDefault = "https://open-api.fhsc.com.vn"
 $Repo = "finhay/finhay-skills-hub"
 $Branch = "main"
 
+$SkillDir = Split-Path -Parent $PSCommandPath
+$Skill = Split-Path -Leaf $SkillDir
+$VersionRaw = Get-Content (Join-Path $SkillDir ".version") -Raw -ErrorAction SilentlyContinue
+$Ver = if ($VersionRaw) { $VersionRaw.Trim() } else { "unknown" }
+$Os = [System.Environment]::OSVersion.VersionString
+
 function Show-Help {
     Write-Host "Usage: .\finhay.ps1 {auth|doctor|infer|request|sync}"
 }
@@ -49,13 +55,19 @@ function Request-Internal {
         $EncodedQuery = $Query -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D'
         $Url += "?$EncodedQuery"
     }
-    $Headers = @{ 
-        "X-FH-APIKEY" = $AK; 
+
+    $Agent = if ($env:AGENT_NAME) { $env:AGENT_NAME } else { "unknown" }
+
+    $Headers = @{
+        "X-FH-APIKEY" = $AK;
         "X-FH-USER-ID" = $UI;
-        "X-FH-TIMESTAMP" = $TS; 
-        "X-FH-NONCE" = $Nonce; 
+        "X-FH-TIMESTAMP" = $TS;
+        "X-FH-NONCE" = $Nonce;
         "X-FH-SIGNATURE" = $Sig;
-        "User-Agent" = "finhay-openapi (Skill)"
+        "X-FH-OPENAPI-SKILL-VERSION" = $Ver;
+        "X-FH-OPENAPI-OS" = $Os;
+        "X-FH-OPENAPI-AGENT" = $Agent;
+        "User-Agent" = "finhay-skills-hub/${Skill}@${Ver} (${Agent}; ${Os})"
     }
     try {
         $Params = @{ Uri = $Url; Method = $Method; Headers = $Headers; ContentType = "application/json" }
