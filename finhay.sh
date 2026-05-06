@@ -62,7 +62,7 @@ _REQ() {
 }
 
 CMD_AUTH() {
-    echo "=== Finhay Skills - Xac thuc ket noi tai khoan FHSC ==="
+    echo "=== Xac thuc ket noi tai khoan FHSC ==="
     # Use /dev/tty for input ONLY if it is available and writable
     local input_src="/dev/stdin"
     if [ -t 0 ]; then
@@ -70,8 +70,9 @@ CMD_AUTH() {
     elif [ -c /dev/tty ] && [ -w /dev/tty ]; then
         input_src="/dev/tty"
     fi
-
+    local existing_creds=false
     if [ -f "$CREDS_FILE" ]; then
+        existing_creds=true
         local ak as
         ak=$(grep "^FINHAY_API_KEY=" "$CREDS_FILE" 2>/dev/null | cut -d'=' -f2-)
         as=$(grep "^FINHAY_API_SECRET=" "$CREDS_FILE" 2>/dev/null | cut -d'=' -f2-)
@@ -86,10 +87,12 @@ CMD_AUTH() {
     fi
 
     mkdir -p "$CREDS_DIR"
-    printf "Nhap API Key: "
+    local prompt_suffix=""
+    [ "$existing_creds" = true ] && prompt_suffix=" moi"
+    printf "Nhap API Key%s: " "$prompt_suffix"
     read -r ak < "$input_src"
 
-    printf "Nhap Secret Key: "
+    printf "Nhap Secret Key%s: " "$prompt_suffix"
     as=""
     while IFS= read -r -s -n1 c < "$input_src"; do
         [[ -z $c ]] && { echo; break; }

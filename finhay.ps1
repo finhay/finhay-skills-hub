@@ -69,8 +69,10 @@ function Request-Internal {
 }
 
 function Cmd-Auth {
-    Write-Host "=== Finhay Skills - Xac thuc ket noi tai khoan FHSC ==="
+    Write-Host "=== Xac thuc ket noi tai khoan FHSC ==="
+    $existingCreds = $false
     if (Test-Path $CredsFile) {
+        $existingCreds = $true
         $FileData = ConvertFrom-StringData (Get-Content $CredsFile -Raw)
         $existingAk = $FileData.FINHAY_API_KEY
         $existingAs = $FileData.FINHAY_API_SECRET
@@ -85,9 +87,10 @@ function Cmd-Auth {
     }
 
     if (-not (Test-Path $CredsDir)) { New-Item -ItemType Directory -Path $CredsDir | Out-Null }
-    $ak = Read-Host "Nhap API Key"
+    $promptSuffix = if ($existingCreds) { " moi" } else { "" }
+    $ak = Read-Host "Nhap API Key$promptSuffix"
 
-    Write-Host -NoNewline "Nhap Secret Key: "
+    Write-Host -NoNewline "Nhap Secret Key$promptSuffix: "
     $as = ""
     while ($true) {
         $key = [Console]::ReadKey($true)
