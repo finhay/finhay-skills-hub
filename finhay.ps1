@@ -69,27 +69,39 @@ function Request-Internal {
 }
 
 function Cmd-Auth {
-    Write-Host "Finhay OpenAPI Authentication"
+    Write-Host "=== Finhay Skills - Xac thuc ket noi tai khoan FHSC ==="
     if (Test-Path $CredsFile) {
-        $confirm = Read-Host "Credentials already exist at $CredsFile. Overwrite? (y/N)"
-        if ($confirm -notmatch "^[Yy]$") { return }
+        $FileData = ConvertFrom-StringData (Get-Content $CredsFile -Raw)
+        $existingAk = $FileData.FINHAY_API_KEY
+        $existingAs = $FileData.FINHAY_API_SECRET
+        if ($existingAk -and $existingAs) {
+            Write-Host "Tim thay thong tin Credentials $CredsFile"
+            $akPrefix = if ($existingAk.Length -ge 8) { $existingAk.Substring(0, 8) } else { $existingAk }
+            Write-Host ("  API Key    : {0}********" -f $akPrefix)
+            Write-Host  "  Secret Key : ****************"
+            $confirm = Read-Host "Ban co muon thay the khong? [y/N]"
+            if ($confirm -notmatch "^[Yy]$") { return }
+        }
     }
 
     if (-not (Test-Path $CredsDir)) { New-Item -ItemType Directory -Path $CredsDir | Out-Null }
-    $ak = Read-Host "Enter API Key"
-    
-    $secureSecret = Read-Host "Enter Secret Key" -AsSecureString
-    $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureSecret)
-    try {
-        $as = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
-    } finally {
-        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+    $ak = Read-Host "Nhap API Key"
+
+    Write-Host -NoNewline "Nhap Secret Key: "
+    $as = ""
+    while ($true) {
+        $key = [Console]::ReadKey($true)
+        if ($key.Key -eq 'Enter') { Write-Host ""; break }
+        if ($key.Key -eq 'Backspace') {
+            if ($as.Length -gt 0) { $as = $as.Substring(0, $as.Length - 1); Write-Host -NoNewline "`b `b" }
+        } else {
+            $as += $key.KeyChar; Write-Host -NoNewline "*"
+        }
     }
 
     $Content = "FINHAY_API_KEY=$ak`nFINHAY_API_SECRET=$as`nFINHAY_BASE_URL=$BaseUrlDefault"
     Set-Content -Path $CredsFile -Value $Content
-    Write-Host "Saved to $CredsFile"
-    Write-Host "Successfully authenticated."
+    Write-Host "Cap nhat Credentials thanh cong. Hay khoi dong lai Agent de su dung."
 }
 
 function Cmd-Doctor {

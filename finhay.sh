@@ -62,7 +62,7 @@ _REQ() {
 }
 
 CMD_AUTH() {
-    echo "Finhay OpenAPI Authentication"
+    echo "=== Finhay Skills - Xac thuc ket noi tai khoan FHSC ==="
     # Use /dev/tty for input ONLY if it is available and writable
     local input_src="/dev/stdin"
     if [ -t 0 ]; then
@@ -72,30 +72,31 @@ CMD_AUTH() {
     fi
 
     if [ -f "$CREDS_FILE" ]; then
-        printf "Credentials already exist at %s. Overwrite? (y/N): " "$CREDS_FILE"
-        read -r confirm < "$input_src"
-        [[ ! "$confirm" =~ ^[Yy]$ ]] && return 0
+        local ak as
+        ak=$(grep "^FINHAY_API_KEY=" "$CREDS_FILE" 2>/dev/null | cut -d'=' -f2-)
+        as=$(grep "^FINHAY_API_SECRET=" "$CREDS_FILE" 2>/dev/null | cut -d'=' -f2-)
+        if [ -n "$ak" ] && [ -n "$as" ]; then
+            printf "Tim thay thong tin Credentials %s\n" "$CREDS_FILE"
+            printf "  API Key    : %s********\n" "${ak:0:8}"
+            printf "  Secret Key : ****************\n"
+            printf "Ban co muon thay the khong? [y/N]: "
+            read -r confirm < "$input_src"
+            [[ ! "$confirm" =~ ^[Yy]$ ]] && return 0
+        fi
     fi
 
     mkdir -p "$CREDS_DIR"
-    printf "Enter API Key: "
+    printf "Nhap API Key: "
     read -r ak < "$input_src"
-    
-    printf "Enter Secret Key: "
+
+    printf "Nhap Secret Key: "
     as=""
-    while IFS= read -r -s -n1 char < "$input_src"; do
-        if [[ -z $char ]]; then
-            echo ""
-            break
-        fi
-        if [[ $char == $'\177' ]]; then
-            if [ -n "$as" ]; then
-                as="${as%?}"
-                printf "\b \b"
-            fi
+    while IFS= read -r -s -n1 c < "$input_src"; do
+        [[ -z $c ]] && { echo; break; }
+        if [[ $c == $'\177' ]]; then
+            [ -n "$as" ] && { as="${as%?}"; printf "\b \b"; }
         else
-            as+="$char"
-            printf "*"
+            as+="$c"; printf "*"
         fi
     done
     
@@ -105,8 +106,7 @@ FINHAY_API_SECRET=$as
 FINHAY_BASE_URL=https://open-api.fhsc.com.vn
 EOF
     chmod 600 "$CREDS_FILE"
-    echo "Saved to $CREDS_FILE"
-    echo "Successfully authenticated."
+    echo "Cap nhat Credentials thanh cong. Hay khoi dong lai Agent de su dung."
 }
 
 CMD_DOCTOR() {
