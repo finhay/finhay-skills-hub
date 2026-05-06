@@ -90,7 +90,7 @@ function Cmd-Auth {
     $promptSuffix = if ($existingCreds) { " moi" } else { "" }
     $ak = Read-Host "Nhap API Key$promptSuffix"
 
-    Write-Host -NoNewline "Nhap Secret Key$promptSuffix: "
+    Write-Host -NoNewline "Nhap Secret Key${promptSuffix}: "
     $as = ""
     while ($true) {
         $key = [Console]::ReadKey($true)
@@ -104,7 +104,13 @@ function Cmd-Auth {
 
     $Content = "FINHAY_API_KEY=$ak`nFINHAY_API_SECRET=$as`nFINHAY_BASE_URL=$BaseUrlDefault"
     Set-Content -Path $CredsFile -Value $Content
-    Write-Host "Cap nhat Credentials thanh cong. Hay khoi dong lai Agent de su dung."
+
+    if ($existingCreds) {
+        Write-Host "Cap nhat Credentials thanh cong. Hay khoi dong lai Agent de su dung."
+    } else {
+        Write-Host "Tao Credentials thanh cong tai $CredsFile"
+        Write-Host "Hay khoi dong lai Agent de su dung."
+    }
 }
 
 function Cmd-Doctor {

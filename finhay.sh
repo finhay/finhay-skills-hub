@@ -93,23 +93,34 @@ CMD_AUTH() {
     read -r ak < "$input_src"
 
     printf "Nhap Secret Key%s: " "$prompt_suffix"
+    trap 'stty echo < /dev/tty 2>/dev/null' EXIT INT
+    stty -echo < /dev/tty 2>/dev/null
     as=""
-    while IFS= read -r -s -n1 c < "$input_src"; do
-        [[ -z $c ]] && { echo; break; }
-        if [[ $c == $'\177' ]]; then
+    while IFS= read -r -n1 c < "$input_src"; do
+        [[ -z $c ]] && break
+        if [[ $c == $'\177' || $c == $'\b' ]]; then
             [ -n "$as" ] && { as="${as%?}"; printf "\b \b"; }
         else
             as+="$c"; printf "*"
         fi
     done
-    
+    stty echo < /dev/tty 2>/dev/null
+    trap - EXIT INT
+    echo
+
     cat << EOF > "$CREDS_FILE"
 FINHAY_API_KEY=$ak
 FINHAY_API_SECRET=$as
 FINHAY_BASE_URL=https://open-api.fhsc.com.vn
 EOF
     chmod 600 "$CREDS_FILE"
-    echo "Cap nhat Credentials thanh cong. Hay khoi dong lai Agent de su dung."
+
+    if [ "$existing_creds" = true ]; then
+        echo "Cap nhat Credentials thanh cong. Hay khoi dong lai Agent de su dung."
+    else
+        echo "Tao Credentials thanh cong tai $CREDS_FILE"
+        echo "Hay khoi dong lai Agent de su dung."
+    fi
 }
 
 CMD_DOCTOR() {
