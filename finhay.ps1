@@ -72,11 +72,11 @@ function Cmd-Auth {
     Write-Host "=== Xac thuc ket noi tai khoan FHSC ==="
     $existingCreds = $false
     if (Test-Path $CredsFile) {
-        $existingCreds = $true
         $FileData = ConvertFrom-StringData (Get-Content $CredsFile -Raw)
         $existingAk = $FileData.FINHAY_API_KEY
         $existingAs = $FileData.FINHAY_API_SECRET
         if ($existingAk -and $existingAs) {
+            $existingCreds = $true
             Write-Host "Tim thay thong tin Credentials $CredsFile"
             $akPrefix = if ($existingAk.Length -ge 8) { $existingAk.Substring(0, 8) } else { $existingAk }
             Write-Host ("  API Key    : {0}********" -f $akPrefix)

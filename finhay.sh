@@ -72,11 +72,11 @@ CMD_AUTH() {
     fi
     local existing_creds=false
     if [ -f "$CREDS_FILE" ]; then
-        existing_creds=true
         local ak as
         ak=$(grep "^FINHAY_API_KEY=" "$CREDS_FILE" 2>/dev/null | cut -d'=' -f2-)
         as=$(grep "^FINHAY_API_SECRET=" "$CREDS_FILE" 2>/dev/null | cut -d'=' -f2-)
         if [ -n "$ak" ] && [ -n "$as" ]; then
+            existing_creds=true
             printf "Tim thay thong tin Credentials %s\n" "$CREDS_FILE"
             printf "  API Key    : %s********\n" "${ak:0:8}"
             printf "  Secret Key : ****************\n"
