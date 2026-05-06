@@ -66,29 +66,33 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 16 | `/market/funds` | — | `data` | [detail](./endpoints/funds.md) |
-| 17 | `/market/funds/:fund/portfolio` | `:fund`* (path), `month` | `data` | [detail](./endpoints/fund-portfolio.md) |
-| 18 | `/market/funds/:fund/months` | `:fund`* (path) | `data` | [detail](./endpoints/fund-months.md) |
+| 15 | `/market/public/fund-certificates` | — | `data` | [detail](./endpoints/funds.md) |
+| 16 | `/market/public/fund-companies` | — | `data` | [detail](./endpoints/fund-companies.md) |
+| 17 | `/market/public/fund-certificates/top-*` | `fund-type` | `data` | [detail](./endpoints/fund-rankings.md) |
+| 18 | `/market/public/fund-certificates/benchmark/*` | `fund-names`* | `data` | [detail](./endpoints/fund-benchmark.md) |
+| 19 | `/market/public/fund-certificates/:fund/portfolio` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
+| 20 | `/market/public/fund-certificates/:fund/nav-histories` | `:fund`* (path) | `data` | [detail](./endpoints/fund-nav-history.md) |
+| 21 | `/market/public/fund-certificates/:fund/*` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
 
 ## Reports
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 19 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
+| 23 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
 
 ## Price History
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 20 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
+| 24 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
 
 ## Company Financial
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 21 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
-| 22 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
-| 23 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
+| 25 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
+| 26 | `/market/company-financial/analysis` | `symbol`*, `period` (`annual`\|`quarterly`) | `data` | [detail](./endpoints/company-financial-analysis.md) |
+| 27 | `/market/v2/financial-statement/statement` | `symbol`*, `type`* (`income-statement`\|`balance-sheet`\|`cash-flow`), `period` (`annual`\|`quarterly`), `limit` | `data` | [detail](./endpoints/financial-statement.md) |
 
 ---
 
@@ -124,3 +128,8 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Full article content by ID | `/market/financial-data/global-news/:id` |
 | Fund list and details | `/market/funds` |
 | Fund portfolio and holdings | `/market/funds/:fund/portfolio` |
+| Fund rankings (AUM, Flow, etc.) | `/market/fund-certificates/top-*` |
+| Fund benchmarking and comparison | `/market/fund-certificates/benchmark/*` |
+| Fund asset/sector allocation | `/market/fund-certificates/:fund/*` |
+| Fund NAV historical charts | `/market/fund-certificates/:fund/nav-histories` |
+| Fund management companies | `/market/fund-companies` |

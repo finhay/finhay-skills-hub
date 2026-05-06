@@ -1,12 +1,12 @@
-# Funds
+# Fund Companies
 
-## `GET /market/public/fund-certificates`
-Retrieve all available funds.
+## `GET /market/public/fund-companies`
+Retrieve a list of all fund management companies.
 
 ```yaml
-/market/public/fund-certificates:
+/market/public/fund-companies:
   get:
-    summary: Get all funds
+    summary: Get all fund companies
     responses:
       '200':
         description: OK
@@ -22,7 +22,6 @@ Retrieve all available funds.
                     properties:
                       id: {type: integer}
                       name: {type: string}
-                      type: {type: string, enum: [STOCK_FUND, BOND_FUND, BALANCE_FUND]}
-                      aum: {type: integer}
-                      rating: {type: number}
+                      short_name: {type: string}
+                      image_url: {type: string}
 ```
