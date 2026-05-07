@@ -9,6 +9,12 @@ BRANCH="main"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 API="https://api.github.com/repos/${REPO}"
 
+SKILL_DIR="${BASH_SOURCE[0]%/*}"
+SKILL="${SKILL_DIR##*/}"
+VER=unknown
+[ -r "$SKILL_DIR/.version" ] && read -r VER < "$SKILL_DIR/.version"
+OS=$(uname -srm)
+
 _REQ() {
     local METHOD="$1"
     local ENDPOINT="$2"
@@ -26,7 +32,8 @@ _REQ() {
 
     local TS=$(( $(date -u +%s) * 1000 ))
     local NONCE=$(openssl rand -hex 16)
-    
+    local AGENT="${AGENT_NAME:-unknown}"
+
     local SIG
     if [ -n "$BODY" ]; then
         SIG=$(printf "%s\n%s\n%s\n%s\n" "$TS" "$METHOD" "$ENDPOINT" "$BODY" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
@@ -47,7 +54,10 @@ _REQ() {
         -H "X-FH-TIMESTAMP: $TS" \
         -H "X-FH-NONCE: $NONCE" \
         -H "X-FH-SIGNATURE: $SIG" \
-        -H "User-Agent: finhay-openapi (Skill)" \
+        -H "X-FH-OPENAPI-SKILL-VERSION: $VER" \
+        -H "X-FH-OPENAPI-OS: $OS" \
+        -H "X-FH-OPENAPI-AGENT: $AGENT" \
+        -H "User-Agent: finhay-skills-hub/${SKILL}@${VER} (${AGENT}; ${OS})" \
         -H "Content-Type: application/json" \
         -d "$BODY" -o "$TMP" -w "%{http_code}")
 

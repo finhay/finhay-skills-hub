@@ -66,29 +66,35 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 16 | `/market/funds` | — | `data` | [detail](./endpoints/funds.md) |
-| 17 | `/market/funds/:fund/portfolio` | `:fund`* (path), `month` | `data` | [detail](./endpoints/fund-portfolio.md) |
-| 18 | `/market/funds/:fund/months` | `:fund`* (path) | `data` | [detail](./endpoints/fund-months.md) |
+| 15 | `/fund-trading/public/fund-certificates` | `fund-type`* (`STOCK_FUND`\|`BOND_FUND`\|`BALANCE_FUND`), `fund-company-id` | `data` | [detail](./endpoints/funds.md) |
+| 16 | `/fund-trading/public/fund-companies` | — | `data` | [detail](./endpoints/fund-companies.md) |
+| 17 | `/fund-trading/public/fund-certificates/top-{aum\|investor\|fund-flow}` | `fund-type`* | `data` | [detail](./endpoints/fund-rankings.md) |
+| 18 | `/fund-trading/public/fund-certificates/top-holding-symbols` | — | `data` | [detail](./endpoints/fund-rankings.md) |
+| 19 | `/fund-trading/public/fund-certificates/benchmark/growth` | `fund-names`*, `amount`* (VND), `period`* | `data` | [detail](./endpoints/fund-benchmark.md) |
+| 20 | `/fund-trading/public/fund-certificates/benchmark/{nav\|operation}` | `fund-names`*, `period` OR (`from-month`+`to-month`, `yyyy-MM`) | `data` | [detail](./endpoints/fund-benchmark.md) |
+| 21 | `/fund-trading/public/fund-certificates/:fund/portfolio` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
+| 22 | `/fund-trading/public/fund-certificates/:fund/nav-histories` | `:fund`* (path), `period` (default `ALL_TIME`) | `data` | [detail](./endpoints/fund-nav-history.md) |
+| 23 | `/fund-trading/public/fund-certificates/:fund/{asset-allocation\|sector-allocation\|suggestions}` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
 
 ## Reports
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 19 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
+| 23 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
 
 ## Price History
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 20 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
+| 24 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
 
 ## Company Financial
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 21 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
-| 22 | `/market/company-financial/analysis` | `symbol`*, `period` | `data` | [detail](./endpoints/company-financial-analysis.md) |
-| 23 | `/market/v2/financial-statement/statement` | `symbol`*, `type`*, `period`, `limit` | `data` | [detail](./endpoints/financial-statement.md) |
+| 25 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
+| 26 | `/market/company-financial/analysis` | `symbol`*, `period` (`annual`\|`quarterly`) | `data` | [detail](./endpoints/company-financial-analysis.md) |
+| 27 | `/market/v2/financial-statement/statement` | `symbol`*, `type`* (`income-statement`\|`balance-sheet`\|`cash-flow`), `period` (`annual`\|`quarterly`), `limit` | `data` | [detail](./endpoints/financial-statement.md) |
 
 ---
 
@@ -122,5 +128,13 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |
 | Global financial news (forex, commodities, crypto, macro…) | `/market/financial-data/global-news?category=<CAT>&page=N` |
 | Full article content by ID | `/market/financial-data/global-news/:id` |
-| Fund list and details | `/market/funds` |
-| Fund portfolio and holdings | `/market/funds/:fund/portfolio` |
+| Fund list (with `fund-type` filter) | `/fund-trading/public/fund-certificates?fund-type=<TYPE>` |
+| Fund portfolio and holdings | `/fund-trading/public/fund-certificates/:fund/portfolio` |
+| Fund rankings: AUM / Investors / Fund-flow | `/fund-trading/public/fund-certificates/top-{aum\|investor\|fund-flow}` |
+| Top symbols held across funds | `/fund-trading/public/fund-certificates/top-holding-symbols` |
+| Simulate growth of a VND investment | `/fund-trading/public/fund-certificates/benchmark/growth` |
+| Compare NAV time series | `/fund-trading/public/fund-certificates/benchmark/nav` |
+| Compare operational metrics (AUM, investors, flow) | `/fund-trading/public/fund-certificates/benchmark/operation` |
+| Fund asset/sector allocation, similar funds | `/fund-trading/public/fund-certificates/:fund/{asset-allocation\|sector-allocation\|suggestions}` |
+| Fund NAV historical chart | `/fund-trading/public/fund-certificates/:fund/nav-histories` |
+| Fund management companies | `/fund-trading/public/fund-companies` |

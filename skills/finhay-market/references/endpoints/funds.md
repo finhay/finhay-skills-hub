@@ -1,21 +1,37 @@
 # Funds
 
-## `GET /market/funds`
+## `GET /fund-trading/public/fund-certificates`
 
-Retrieve all available funds.
+List funds filtered by type (and optionally by management company), sorted by 1-year average profit (descending).
 
 ---
 
 ### OpenAPI Spec
 
 ```yaml
-/market/funds:
+/fund-trading/public/fund-certificates:
   get:
-    summary: Get all funds
-    operationId: getFunds
+    summary: Get fund list
+    operationId: getFundCertificates
     tags:
       - Funds
-    parameters: []
+    parameters:
+      - name: fund-type
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [STOCK_FUND, BOND_FUND, BALANCE_FUND]
+          example: STOCK_FUND
+        description: Fund category.
+      - name: fund-company-id
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int64
+          example: 12
+        description: Filter by management company ID. See `/fund-trading/public/fund-companies`.
     responses:
       '200':
         description: Successful response
@@ -24,48 +40,36 @@ Retrieve all available funds.
             schema:
               type: object
               properties:
-                status:
-                  type: integer
-                  example: 200
+                error_code: {type: string, example: "0"}
+                message: {type: string, example: success}
                 data:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Fund'
+                    $ref: '#/components/schemas/FundCertificate'
 ```
-
-### Response Key
-
-`data`
 
 ### Components
 
 ```yaml
 components:
   schemas:
-    Fund:
+    FundCertificate:
       type: object
       properties:
-        code:
+        id: {type: integer, example: 21}
+        name: {type: string, example: VESAF}
+        type:
           type: string
-          description: Fund code identifier
-          example: DCDS
-        name:
-          type: string
-          description: Fund name
-          example: Quỹ Đầu tư Cổ phiếu Dragon Capital Việt Nam
-        image_url:
-          type: string
-          description: Fund logo/image URL
-          example: https://example.com/fund-logo.png
-        desc:
-          type: string
-          description: Fund description
-        info_url:
-          type: string
-          description: URL to fund information page
-        performances:
-          type: array
-          description: Fund performance data
-          items:
-            type: object
+          enum: [STOCK_FUND, BOND_FUND, BALANCE_FUND]
+        aum:
+          type: integer
+          description: Assets under management in VND.
+          example: 1500000000000
+        rating: {type: number, example: 4.5}
 ```
+
+### Notes
+
+- `fund-type` is **required**.
+- Manulife fund (`id=36`) is filtered server-side and never appears.
+- Results sorted by 1-year average profit (desc).
