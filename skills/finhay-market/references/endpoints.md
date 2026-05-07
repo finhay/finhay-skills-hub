@@ -66,13 +66,15 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 15 | `/market/public/fund-certificates` | — | `data` | [detail](./endpoints/funds.md) |
-| 16 | `/market/public/fund-companies` | — | `data` | [detail](./endpoints/fund-companies.md) |
-| 17 | `/market/public/fund-certificates/top-*` | `fund-type` | `data` | [detail](./endpoints/fund-rankings.md) |
-| 18 | `/market/public/fund-certificates/benchmark/*` | `fund-names`* | `data` | [detail](./endpoints/fund-benchmark.md) |
-| 19 | `/market/public/fund-certificates/:fund/portfolio` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
-| 20 | `/market/public/fund-certificates/:fund/nav-histories` | `:fund`* (path) | `data` | [detail](./endpoints/fund-nav-history.md) |
-| 21 | `/market/public/fund-certificates/:fund/*` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
+| 15 | `/fund-trading/public/fund-certificates` | `fund-type`* (`STOCK_FUND`\|`BOND_FUND`\|`BALANCE_FUND`), `fund-company-id` | `data` | [detail](./endpoints/funds.md) |
+| 16 | `/fund-trading/public/fund-companies` | — | `data` | [detail](./endpoints/fund-companies.md) |
+| 17 | `/fund-trading/public/fund-certificates/top-{aum\|investor\|fund-flow}` | `fund-type`* | `data` | [detail](./endpoints/fund-rankings.md) |
+| 18 | `/fund-trading/public/fund-certificates/top-holding-symbols` | — | `data` | [detail](./endpoints/fund-rankings.md) |
+| 19 | `/fund-trading/public/fund-certificates/benchmark/growth` | `fund-names`*, `amount`* (VND), `period`* | `data` | [detail](./endpoints/fund-benchmark.md) |
+| 20 | `/fund-trading/public/fund-certificates/benchmark/{nav\|operation}` | `fund-names`*, `period` OR (`from-month`+`to-month`, `yyyy-MM`) | `data` | [detail](./endpoints/fund-benchmark.md) |
+| 21 | `/fund-trading/public/fund-certificates/:fund/portfolio` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
+| 22 | `/fund-trading/public/fund-certificates/:fund/nav-histories` | `:fund`* (path), `period` (default `ALL_TIME`) | `data` | [detail](./endpoints/fund-nav-history.md) |
+| 23 | `/fund-trading/public/fund-certificates/:fund/{asset-allocation\|sector-allocation\|suggestions}` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
 
 ## Reports
 
@@ -126,10 +128,13 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |
 | Global financial news (forex, commodities, crypto, macro…) | `/market/financial-data/global-news?category=<CAT>&page=N` |
 | Full article content by ID | `/market/financial-data/global-news/:id` |
-| Fund list and details | `/market/funds` |
-| Fund portfolio and holdings | `/market/funds/:fund/portfolio` |
-| Fund rankings (AUM, Flow, etc.) | `/market/fund-certificates/top-*` |
-| Fund benchmarking and comparison | `/market/fund-certificates/benchmark/*` |
-| Fund asset/sector allocation | `/market/fund-certificates/:fund/*` |
-| Fund NAV historical charts | `/market/fund-certificates/:fund/nav-histories` |
-| Fund management companies | `/market/fund-companies` |
+| Fund list (with `fund-type` filter) | `/fund-trading/public/fund-certificates?fund-type=<TYPE>` |
+| Fund portfolio and holdings | `/fund-trading/public/fund-certificates/:fund/portfolio` |
+| Fund rankings: AUM / Investors / Fund-flow | `/fund-trading/public/fund-certificates/top-{aum\|investor\|fund-flow}` |
+| Top symbols held across funds | `/fund-trading/public/fund-certificates/top-holding-symbols` |
+| Simulate growth of a VND investment | `/fund-trading/public/fund-certificates/benchmark/growth` |
+| Compare NAV time series | `/fund-trading/public/fund-certificates/benchmark/nav` |
+| Compare operational metrics (AUM, investors, flow) | `/fund-trading/public/fund-certificates/benchmark/operation` |
+| Fund asset/sector allocation, similar funds | `/fund-trading/public/fund-certificates/:fund/{asset-allocation\|sector-allocation\|suggestions}` |
+| Fund NAV historical chart | `/fund-trading/public/fund-certificates/:fund/nav-histories` |
+| Fund management companies | `/fund-trading/public/fund-companies` |

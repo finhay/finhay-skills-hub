@@ -66,15 +66,18 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 | `/market/financial-data/global-news/:id` | **Global News Detail**: Full article content by ID. | `:id` (path, **required**) |
 | `/market/financial-data/economic-calendar-events` | **Economic Calendar**: Upcoming events for CN/EU/JP/US/UK/VN (CPI, Fed meetings). | `weeks` (default 1), `country` (e.g. `China`, `Vietnam`, `United States`) |
 | `/market/financial-data/market` | **Global Indices**: Historical price for global indices, Mag7 stocks, commodities, forex — returns `[{date, value}]` desc. | `type` (SP500, NASDAQ, APPLE, GOLD, EURUSD…), `limit` (default 50, max 500) |
-| `/market/public/fund-certificates` | **Fund List**: Available funds & basic info. | — |
-| `/market/public/fund-certificates/:fund/portfolio` | **Fund Portfolio**: Holdings breakdown. | `:fund` (path) |
-| `/market/public/fund-companies` | **Fund Companies**: Management company list. | — |
-| `/market/public/fund-certificates/top-*` | **Fund Rankings**: Top AUM, Flow, etc. | `fund-type`* |
-| `/market/public/fund-certificates/benchmark/*` | **Performance Comparison**: Growth & NAV. | `fund-names`* |
-| `/market/public/fund-certificates/:fund/nav-histories` | **NAV History**: Price charts vs benchmarks. | `period` |
-| `/market/public/fund-certificates/:fund/asset-allocation` | **Asset Allocation**: Bond/Stock/Cash mix. | — |
-| `/market/public/fund-certificates/:fund/sector-allocation` | **Sector Allocation**: Industry exposure. | — |
-| `/market/public/fund-certificates/:fund/suggestions` | **Similar Funds**: Suggestions by criteria. | — |
+| `/fund-trading/public/fund-certificates` | **Fund List**: Available funds, sorted by 1y profit. | `fund-type`* (`STOCK_FUND`\|`BOND_FUND`\|`BALANCE_FUND`), `fund-company-id` |
+| `/fund-trading/public/fund-certificates/:fund/portfolio` | **Fund Portfolio**: Holdings breakdown. | `:fund` (path) |
+| `/fund-trading/public/fund-companies` | **Fund Companies**: Management company list. | — |
+| `/fund-trading/public/fund-certificates/top-{aum\|investor\|fund-flow}` | **Fund Rankings**: Top AUM / investors / net fund-flow. | `fund-type`* |
+| `/fund-trading/public/fund-certificates/top-holding-symbols` | **Top Holdings**: Most-held symbols across all funds. | — |
+| `/fund-trading/public/fund-certificates/benchmark/growth` | **Growth Simulation**: Projected return for a VND investment. | `fund-names`* (CSV), `amount`* (VND), `period`* |
+| `/fund-trading/public/fund-certificates/benchmark/nav` | **NAV Comparison**: NAV time series for multiple funds. | `fund-names`*, `period` OR (`from-month`+`to-month` `yyyy-MM`) |
+| `/fund-trading/public/fund-certificates/benchmark/operation` | **Operational Comparison**: AUM, investors, fund-flow per fund. | `fund-names`*, `period` OR (`from-month`+`to-month` `yyyy-MM`) |
+| `/fund-trading/public/fund-certificates/:fund/nav-histories` | **NAV History**: Price chart vs benchmarks. | `period` (default `ALL_TIME`) |
+| `/fund-trading/public/fund-certificates/:fund/asset-allocation` | **Asset Allocation**: Bond/Stock/Cash mix. | — |
+| `/fund-trading/public/fund-certificates/:fund/sector-allocation` | **Sector Allocation**: Industry exposure. | — |
+| `/fund-trading/public/fund-certificates/:fund/suggestions` | **Similar Funds**: Suggestions by criteria. | — |
 | `/market/recommendation-reports/:symbol` | **Analyst Reports**: Professional stock recommendation reports. | `:symbol` (path) |
 | `/market/price-histories-chart` | **Historical Data**: OHLCV data. | `symbol`, `resolution` (`1D`,`1H`,`4H`,`30`,`15`,`5`), `from`, `to` (seconds) |
 | `/market/company-financial/overview` | **Corporate Ratios**: Key metrics (PE, PB, ROE, EPS). | `symbol` |
