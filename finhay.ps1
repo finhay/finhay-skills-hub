@@ -13,6 +13,7 @@ $Ver = if ($VersionRaw) { $VersionRaw.Trim() } else { "unknown" }
 $Os = [System.Environment]::OSVersion.VersionString
 
 $Deps = @(
+    @{ Name = "Node.js"; Cmd = "node"; VersionArg = "--version"; WingetId = "OpenJS.NodeJS.LTS"; InstallUrl = "https://nodejs.org/en/download" },
     @{ Name = "Git"; Cmd = "git"; VersionArg = "--version"; WingetId = "Git.Git"; InstallUrl = "https://git-scm.com/download/win" }
 )
 
