@@ -15,6 +15,20 @@ VER=unknown
 [ -r "$SKILL_DIR/.version" ] && read -r VER < "$SKILL_DIR/.version"
 OS=$(uname -srm)
 
+DEPS=(
+    "Node.js|node|--version|node|nodejs|https://nodejs.org/en/download"
+)
+
+_INPUT_SRC() {
+    if [ -t 0 ]; then
+        echo "/dev/stdin"
+    elif [ -c /dev/tty ] && [ -w /dev/tty ]; then
+        echo "/dev/tty"
+    else
+        echo "/dev/stdin"
+    fi
+}
+
 _REQ() {
     local METHOD="$1"
     local ENDPOINT="$2"
@@ -73,13 +87,8 @@ _REQ() {
 
 CMD_AUTH() {
     echo "=== Xac thuc ket noi tai khoan FHSC ==="
-    # Use /dev/tty for input ONLY if it is available and writable
-    local input_src="/dev/stdin"
-    if [ -t 0 ]; then
-        input_src="/dev/stdin"
-    elif [ -c /dev/tty ] && [ -w /dev/tty ]; then
-        input_src="/dev/tty"
-    fi
+    local input_src
+    input_src=$(_INPUT_SRC)
     local existing_creds=false
     if [ -f "$CREDS_FILE" ]; then
         local ak as
@@ -148,6 +157,45 @@ CMD_DOCTOR() {
     done
 }
 
+INSTALL_DEP() {
+    local NAME="$1" BREW_ID="$2" APT_ID="$3" URL="$4"
+    if command -v brew >/dev/null 2>&1; then
+        echo "Installing $NAME via Homebrew..."
+        brew install "$BREW_ID"
+    elif command -v apt-get >/dev/null 2>&1; then
+        echo "Installing $NAME via apt..."
+        sudo apt-get update && sudo apt-get install -y "$APT_ID"
+    elif command -v dnf >/dev/null 2>&1; then
+        echo "Installing $NAME via dnf..."
+        sudo dnf install -y "$APT_ID"
+    elif command -v pacman >/dev/null 2>&1; then
+        echo "Installing $NAME via pacman..."
+        sudo pacman -S --noconfirm "$APT_ID"
+    else
+        echo "No supported package manager found. Install manually from $URL"
+    fi
+}
+
+CHECK_DEP() {
+    IFS='|' read -r NAME CMD VARG BREW_ID APT_ID URL <<< "$1"
+    if command -v "$CMD" >/dev/null 2>&1; then
+        echo "✅ $NAME: $("$CMD" "$VARG" 2>/dev/null)"
+        return
+    fi
+    echo "❌ $NAME: MISSING"
+    printf "Install %s now? [y/N]: " "$NAME"
+    read -r confirm < "$(_INPUT_SRC)"
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        INSTALL_DEP "$NAME" "$BREW_ID" "$APT_ID" "$URL"
+    else
+        echo "Install manually from $URL"
+    fi
+}
+
+CMD_DEPS() {
+    for dep in "${DEPS[@]}"; do CHECK_DEP "$dep"; done
+}
+
 CMD_INFER() {
     local DATA=$(_REQ GET /users/v1/users/me)
     USER_ID=$(echo "$DATA" | jq -r '.data.user_id // empty')
@@ -202,8 +250,9 @@ CMD_SYNC() {
 case "$1" in
     auth) CMD_AUTH ;;
     doctor) CMD_DOCTOR ;;
+    deps) CMD_DEPS ;;
     infer) CMD_INFER ;;
     request) shift; _REQ "$@" ;;
     sync) CMD_SYNC "$2" ;;
-    *) echo "Usage: ./finhay.sh {auth|doctor|infer|request|sync}"; exit 1 ;;
+    *) echo "Usage: ./finhay.sh {auth|doctor|deps|infer|request|sync}"; exit 1 ;;
 esac
