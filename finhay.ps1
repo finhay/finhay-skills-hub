@@ -10,8 +10,12 @@ $VersionRaw = Get-Content (Join-Path $SkillDir ".version") -Raw -ErrorAction Sil
 $Ver = if ($VersionRaw) { $VersionRaw.Trim() } else { "unknown" }
 $Os = [System.Environment]::OSVersion.VersionString
 
+$Deps = @(
+    @{ Name = "Git"; Cmd = "git"; VersionArg = "--version"; WingetId = "Git.Git"; InstallUrl = "https://git-scm.com/download/win" }
+)
+
 function Show-Help {
-    Write-Host "Usage: .\finhay.ps1 {auth|doctor|infer|request|sync}"
+    Write-Host "Usage: .\finhay.ps1 {auth|doctor|deps|infer|request|sync}"
 }
 
 function Request-Internal {
@@ -147,6 +151,33 @@ function Cmd-Doctor {
     Write-Host "Environment: PowerShell $($PSVersionTable.PSVersion)"
 }
 
+function Install-Dep {
+    param($Dep)
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Host ("WinGet not available. Install manually from {0}" -f $Dep.InstallUrl)
+        return
+    }
+    Write-Host ("Installing {0} via WinGet..." -f $Dep.Name)
+    winget install --id $Dep.WingetId -e --silent --accept-source-agreements --accept-package-agreements
+}
+
+function Check-Dep {
+    param($Dep)
+    if (Get-Command $Dep.Cmd -ErrorAction SilentlyContinue) {
+        $Version = (& $Dep.Cmd $Dep.VersionArg) 2>$null
+        Write-Host ("✅ {0}: {1}" -f $Dep.Name, $Version)
+        return
+    }
+    Write-Host ("❌ {0}: MISSING" -f $Dep.Name)
+    $confirm = Read-Host ("Install {0} now? [y/N]" -f $Dep.Name)
+    if ($confirm -match "^[Yy]$") { Install-Dep $Dep }
+    else { Write-Host ("Install manually from {0}" -f $Dep.InstallUrl) }
+}
+
+function Cmd-Deps {
+    foreach ($Dep in $Deps) { Check-Dep $Dep }
+}
+
 function Cmd-Infer {
     $Data = Request-Internal -Method "GET" -Endpoint "/users/v1/users/me"
     $UserJson = $Data | ConvertFrom-Json
@@ -214,6 +245,7 @@ $ArgsList = $args[1..$args.Length]
 switch ($Command) {
     "auth"    { Cmd-Auth }
     "doctor"  { Cmd-Doctor }
+    "deps"    { Cmd-Deps }
     "infer"   { Cmd-Infer }
     "request" { Request-Internal -Method $ArgsList[0] -Endpoint $ArgsList[1] -Query $ArgsList[2] -Body $ArgsList[3] }
     "sync"    { Cmd-Sync -Skill $ArgsList[0] }
