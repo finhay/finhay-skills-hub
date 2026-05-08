@@ -92,7 +92,7 @@ components:
           description: Saving amount
         bond:
           type: number
-          description: Bond value
+          description: HayBond value
         hay0:
           type: number
           description: Hay0 NAV
@@ -172,5 +172,6 @@ components:
 ### Notes
 
 - For Level 0/1 users, `stock`, `fund`, `bond` in `products` and `pnl` entries return `0`.
+- Please note that `bond` indicate that HayBond product.
 - `saving` in `products` may be `null`.
 - Supports caching via `cache-control` query parameter; defaults to `CACHE`.

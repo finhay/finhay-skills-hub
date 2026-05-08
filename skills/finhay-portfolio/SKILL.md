@@ -60,6 +60,8 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 
 For account balance always use a combination of the `/users/v3/users/{userId}/assets/summary` & `/trading/accounts/{subAccountId}/summary` endpoints, to get the most accurate total assets and NAV.
 
+Please note that the `/users/v3/users/{userId}/assets/summary` endpoint provides an aggregated overview across all Finhay products. **IMPORTANT:** `products.bond` in the response indicates the HayBond product, not traditional bonds — these are different things.
+
 ## Sub-account Selection
 
 - **NORMAL** → `$SUB_ACCOUNT_NORMAL`
