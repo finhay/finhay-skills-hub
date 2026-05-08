@@ -4,9 +4,11 @@ $BaseUrlDefault = "https://open-api.fhsc.com.vn"
 $Repo = "finhay/finhay-skills-hub"
 $Branch = "main"
 
-$SkillDir = Split-Path -Parent $PSCommandPath
-$Skill = Split-Path -Leaf $SkillDir
-$VersionRaw = Get-Content (Join-Path $SkillDir ".version") -Raw -ErrorAction SilentlyContinue
+if ($PSCommandPath) {
+    $SkillDir = Split-Path -Parent $PSCommandPath
+    $Skill = Split-Path -Leaf $SkillDir
+    $VersionRaw = Get-Content (Join-Path $SkillDir ".version") -Raw -ErrorAction SilentlyContinue
+}
 $Ver = if ($VersionRaw) { $VersionRaw.Trim() } else { "unknown" }
 $Os = [System.Environment]::OSVersion.VersionString
 
