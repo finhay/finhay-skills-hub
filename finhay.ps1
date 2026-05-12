@@ -44,19 +44,22 @@ function Request-Internal {
     if (-not $BU) { $BU = $BaseUrlDefault }
     $TS = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
     $Nonce = [Guid]::NewGuid().ToString("n").Substring(0, 32)
-    
-    $Payload = "$TS`n$Method`n$Endpoint"
-    if ($Body) { 
-        $Payload += "`n$Body`n" 
+
+    $BodyHash = ""
+    if ($Body) {
+        $Sha = [System.Security.Cryptography.SHA256]::Create()
+        $BodyHashBytes = $Sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Body))
+        $BodyHash = [BitConverter]::ToString($BodyHashBytes).Replace("-", "").ToLower()
+        $Payload = "$TS`n$Method`n$Endpoint`n$BodyHash"
     } else {
-        $Payload += "`n"
+        $Payload = "$TS`n$Method`n$Endpoint`n"
     }
 
     $Hmac = New-Object System.Security.Cryptography.HMACSHA256
     $Hmac.Key = [System.Text.Encoding]::UTF8.GetBytes($AS)
     $SigBytes = $Hmac.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Payload))
     $Sig = [BitConverter]::ToString($SigBytes).Replace("-", "").ToLower()
-    
+
     $Url = "$BU$Endpoint"
     if ($Query) {
         $EncodedQuery = $Query -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D'
@@ -76,6 +79,7 @@ function Request-Internal {
         "X-FH-OPENAPI-AGENT" = $Agent;
         "User-Agent" = "finhay-skills-hub/${Skill}@${Ver} (${Agent}; ${Os})"
     }
+    if ($BodyHash) { $Headers["X-FH-BODYHASH"] = $BodyHash }
     try {
         $Params = @{ Uri = $Url; Method = $Method; Headers = $Headers; ContentType = "application/json" }
         if ($Body) { $Params.Body = $Body }

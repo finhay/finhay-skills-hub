@@ -13,7 +13,7 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | finhay-market | Stock prices, funds, gold, crypto, macro indicators, charts | Prices, rates, market data |
-| finhay-portfolio | User profile, balance, portfolio, orders, PnL, user rights, market session | Profile, trading account, holdings, order history |
+| finhay-portfolio | User profile, balance, portfolio, orders, PnL, user rights, market session, **order execution (place/modify/cancel)** | Profile, trading account, holdings, order history, **placing/modifying/cancelling orders** |
 
 ## Prerequisites
 
@@ -49,4 +49,9 @@ When a new API endpoint is added to the backend (e.g. `vnsc-datafeed-service`), 
 
 3. **Update** `skills/<skill>/SKILL.md`
    - Add a row to the `## Endpoints` table with a one-line description and param summary
+
+For **write operations** (POST/PUT/DELETE), additionally:
+- Document the body schema in the endpoint detail file's `### Components` section.
+- The signing payload for write requests includes a body hash: `{TIMESTAMP}\n{METHOD}\n{PATH}\n{SHA256(body).hex()}`, plus an `X-FH-BODYHASH` header. `./finhay.sh request` handles this when the BODY argument is non-empty.
+- For skills that include write operations, also maintain `references/safety.md` (user confirmation protocol) and `references/error-codes.md` (mapping `result[].code` to user-facing messages).
 

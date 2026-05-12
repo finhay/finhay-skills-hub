@@ -49,8 +49,10 @@ _REQ() {
     local AGENT="${AGENT_NAME:-unknown}"
 
     local SIG
+    local BODY_HASH=""
     if [ -n "$BODY" ]; then
-        SIG=$(printf "%s\n%s\n%s\n%s\n" "$TS" "$METHOD" "$ENDPOINT" "$BODY" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
+        BODY_HASH=$(printf '%s' "$BODY" | openssl dgst -sha256 -binary | xxd -p -c 256)
+        SIG=$(printf "%s\n%s\n%s\n%s" "$TS" "$METHOD" "$ENDPOINT" "$BODY_HASH" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
     else
         SIG=$(printf "%s\n%s\n%s\n" "$TS" "$METHOD" "$ENDPOINT" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
     fi
@@ -61,6 +63,9 @@ _REQ() {
         URL="${URL}?${ENCODED_QUERY}"
     fi
 
+    local BODYHASH_HEADER=()
+    [ -n "$BODY_HASH" ] && BODYHASH_HEADER=(-H "X-FH-BODYHASH: $BODY_HASH")
+
     local TMP=$(mktemp)
     local CODE=$(curl -sS -X "$METHOD" "$URL" \
         -H "X-FH-APIKEY: $AK" \
@@ -68,6 +73,7 @@ _REQ() {
         -H "X-FH-TIMESTAMP: $TS" \
         -H "X-FH-NONCE: $NONCE" \
         -H "X-FH-SIGNATURE: $SIG" \
+        "${BODYHASH_HEADER[@]}" \
         -H "X-FH-OPENAPI-SKILL-VERSION: $VER" \
         -H "X-FH-OPENAPI-OS: $OS" \
         -H "X-FH-OPENAPI-AGENT: $AGENT" \

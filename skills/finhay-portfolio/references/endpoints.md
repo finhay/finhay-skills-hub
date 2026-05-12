@@ -14,7 +14,22 @@ Versions are fixed per endpoint — do not change them:
 - `v2` → portfolio
 - `v3` → assets summary
 - `v5` → user rights
-- (no prefix) → account summary, orders, PnL, market session
+- `oa` (no version number) → order execution (place/modify/cancel)
+- (no prefix) → account summary, orders, PnL, market session, trade-info
+
+## Signing for Write Operations
+
+POST/PUT/DELETE requests use a **different signing payload** than GET — the body hash is included:
+
+```
+{TIMESTAMP}\n{METHOD}\n{PATH}\n{BODY_HASH}
+```
+
+Where `BODY_HASH = SHA256(request_body_json).hex()`. An additional header `X-FH-BODYHASH` is sent with the same hex value.
+
+`./finhay.sh request METHOD PATH QUERY BODY` (and the PowerShell equivalent) handle this automatically — when `BODY` is non-empty, the script computes the body hash, signs the extended payload, and adds the `X-FH-BODYHASH` header.
+
+> Note: write payloads omit the trailing `\n` that GET payloads include. The script handles this difference.
 
 ---
 
@@ -46,3 +61,33 @@ Versions are fixed per endpoint — do not change them:
 |---|--------|------|--------|---------|--------|
 | 8 | GET | `/trading/v5/account/{subAccountId}/user-rights` | — | `result` | [detail](./endpoints/user-rights.md) |
 | 9 | GET | `/trading/market/session` | `exchange` | `result` | [detail](./endpoints/market-session.md) |
+
+## Trade Info (Pre-execution Check)
+
+| # | Method | Path | Params | Res key | Detail |
+|---|--------|------|--------|---------|--------|
+| 10 | GET | `/trading/sub-accounts/{subAccountId}/trade-info` | `symbol`, `side`, `quote_price` | `result` | [detail](./endpoints/trade-info.md) |
+
+---
+
+## Order Execution (Write)
+
+All three endpoints return data in the `result` key as an array of order results. See [safety.md](./safety.md) for the 5-step protocol and [error-codes.md](./error-codes.md) for `result[].code` mappings.
+
+### Place Order
+
+| # | Method | Path | Body | Res key | Detail |
+|---|--------|------|------|---------|--------|
+| 11 | POST | `/trading/oa/sub-accounts/{subAccountId}/orders` | `sub_account`, `side`, `symbol`, `quantity`, `type`, `limit_price`, `market_price`, `stock_type` | `result` | [detail](./endpoints/place-order.md) |
+
+### Modify Order
+
+| # | Method | Path | Body | Res key | Detail |
+|---|--------|------|------|---------|--------|
+| 12 | PUT | `/trading/oa/sub-accounts/{subAccountId}/orders/{orderId}` | `quantity`, `price` | `result` | [detail](./endpoints/modify-order.md) |
+
+### Cancel Order
+
+| # | Method | Path | Body | Res key | Detail |
+|---|--------|------|------|---------|--------|
+| 13 | DELETE | `/trading/oa/sub-accounts/{subAccountId}/orders/{orderId}` | `sub_account` | `result` | [detail](./endpoints/cancel-order.md) |
