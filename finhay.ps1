@@ -56,7 +56,7 @@ function Invoke-2FAInteractive {
     if ($channel -ne "SMS" -and $channel -ne "EMAIL") { $channel = "EMAIL" }
 
     $reqBody = "{`"channel`":`"$channel`"}"
-    $reqResp = Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/request" -Body $reqBody
+    $reqResp = Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/request" -Body $reqBody
     if (-not $reqResp) { return $false }
     $reqJson = $reqResp | ConvertFrom-Json
     if (-not $reqJson.ticket_id) {
@@ -69,7 +69,7 @@ function Invoke-2FAInteractive {
     if (-not $otp) { Write-Error "OTP rỗng."; return $false }
 
     $verifyBody = "{`"ticket_id`":`"$($reqJson.ticket_id)`",`"otp_code`":`"$otp`"}"
-    $verifyResp = Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/verify" -Body $verifyBody
+    $verifyResp = Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/verify" -Body $verifyBody
     if (-not $verifyResp) { return $false }
     $verifyJson = $verifyResp | ConvertFrom-Json
     if (-not $verifyJson.session_token) {
@@ -106,14 +106,24 @@ function Request-Internal {
     $TS = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
     $Nonce = [Guid]::NewGuid().ToString("n").Substring(0, 32)
 
+    $MethodUpper = $Method.ToUpper()
+
+    $EncodedQuery = ""
+    if ($Query) {
+        $EncodedQuery = $Query -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D'
+    }
+
+    $SignPath = $Endpoint
+    if ($EncodedQuery) { $SignPath = "$Endpoint`?$EncodedQuery" }
+
     $BodyHash = ""
     if ($Body) {
         $Sha = [System.Security.Cryptography.SHA256]::Create()
         $BodyHashBytes = $Sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Body))
         $BodyHash = [BitConverter]::ToString($BodyHashBytes).Replace("-", "").ToLower()
-        $Payload = "$TS`n$Method`n$Endpoint`n$BodyHash"
+        $Payload = "$TS`n$MethodUpper`n$SignPath`n$BodyHash"
     } else {
-        $Payload = "$TS`n$Method`n$Endpoint`n"
+        $Payload = "$TS`n$MethodUpper`n$SignPath`n"
     }
 
     $Hmac = New-Object System.Security.Cryptography.HMACSHA256
@@ -122,10 +132,7 @@ function Request-Internal {
     $Sig = [BitConverter]::ToString($SigBytes).Replace("-", "").ToLower()
 
     $Url = "$BU$Endpoint"
-    if ($Query) {
-        $EncodedQuery = $Query -replace ' ', '%20' -replace '\[', '%5B' -replace '\]', '%5D'
-        $Url += "?$EncodedQuery"
-    }
+    if ($EncodedQuery) { $Url += "?$EncodedQuery" }
 
     $Agent = if ($env:AGENT_NAME) { $env:AGENT_NAME } else { "unknown" }
 
@@ -321,7 +328,7 @@ function Cmd-2FA {
         "request" {
             $channel = if ($A1) { $A1.ToUpper() } else { "EMAIL" }
             if ($channel -ne "SMS" -and $channel -ne "EMAIL") { $channel = "EMAIL" }
-            Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/request" -Body "{`"channel`":`"$channel`"}"
+            Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/request" -Body "{`"channel`":`"$channel`"}"
         }
         "verify" {
             if (-not $A1 -or -not $A2) {
@@ -329,7 +336,7 @@ function Cmd-2FA {
                 return
             }
             $body = "{`"ticket_id`":`"$A1`",`"otp_code`":`"$A2`"}"
-            $resp = Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/verify" -Body $body
+            $resp = Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/verify" -Body $body
             if (-not $resp) { return }
             $json = $resp | ConvertFrom-Json
             if (-not $json.session_token) {
@@ -365,7 +372,7 @@ function Cmd-2FA {
                 Write-Host "Không có session active để revoke. File local đã được xoá."
                 return
             }
-            Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/revoke" -Body "{`"session_token`":`"$token`"}" | Out-Null
+            Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/revoke" -Body "{`"session_token`":`"$token`"}" | Out-Null
             Clear-2FAToken
             Write-Host "✅ 2FA session đã revoke (cả server + local)."
         }

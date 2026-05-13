@@ -5,3 +5,6 @@ dist/
 .DS_Store
 place_order.md
 solution.md
+.agents/
+.claude/
+skills-lock.json

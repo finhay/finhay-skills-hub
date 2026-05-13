@@ -69,7 +69,7 @@ _2FA_INTERACTIVE_FLOW() {
     [ "$channel" != "SMS" ] && [ "$channel" != "EMAIL" ] && channel="EMAIL"
 
     local resp ticket masked
-    resp=$(_REQ POST /v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}") || return 1
+    resp=$(_REQ POST /auth/v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}") || return 1
     ticket=$(printf '%s' "$resp" | jq -r '.ticket_id // empty')
     masked=$(printf '%s' "$resp" | jq -r '.masked_destination // empty')
     [ -z "$ticket" ] && { echo "ERROR: 2FA request failed: $resp" >&2; return 1; }
@@ -80,7 +80,7 @@ _2FA_INTERACTIVE_FLOW() {
     read -r otp < "$input_src" || true
     [ -z "$otp" ] && { echo "ERROR: OTP rỗng." >&2; return 1; }
 
-    resp=$(_REQ POST /v1/openapi/2fa/verify '' "{\"ticket_id\":\"$ticket\",\"otp_code\":\"$otp\"}") || return 1
+    resp=$(_REQ POST /auth/v1/openapi/2fa/verify '' "{\"ticket_id\":\"$ticket\",\"otp_code\":\"$otp\"}") || return 1
     local token exp_iso exp_epoch
     token=$(printf '%s' "$resp" | jq -r '.session_token // empty')
     exp_iso=$(printf '%s' "$resp" | jq -r '.expires_at // empty')
@@ -111,20 +111,27 @@ _REQ() {
     local NONCE=$(openssl rand -hex 16)
     local AGENT="${AGENT_NAME:-unknown}"
 
+    local METHOD_UPPER=$(printf '%s' "$METHOD" | tr '[:lower:]' '[:upper:]')
+
+    local ENCODED_QUERY=""
+    if [ -n "$QUERY" ]; then
+        ENCODED_QUERY=$(printf '%s' "$QUERY" | sed 's/ /%20/g; s/\[/%5B/g; s/\]/%5D/g')
+    fi
+
+    local SIGN_PATH="$ENDPOINT"
+    [ -n "$ENCODED_QUERY" ] && SIGN_PATH="${SIGN_PATH}?${ENCODED_QUERY}"
+
     local SIG
     local BODY_HASH=""
     if [ -n "$BODY" ]; then
         BODY_HASH=$(printf '%s' "$BODY" | openssl dgst -sha256 -binary | xxd -p -c 256)
-        SIG=$(printf "%s\n%s\n%s\n%s" "$TS" "$METHOD" "$ENDPOINT" "$BODY_HASH" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
+        SIG=$(printf "%s\n%s\n%s\n%s" "$TS" "$METHOD_UPPER" "$SIGN_PATH" "$BODY_HASH" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
     else
-        SIG=$(printf "%s\n%s\n%s\n" "$TS" "$METHOD" "$ENDPOINT" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
+        SIG=$(printf "%s\n%s\n%s\n" "$TS" "$METHOD_UPPER" "$SIGN_PATH" | openssl dgst -sha256 -hmac "$AS" -binary | xxd -p -c 256)
     fi
 
     local URL="${BU}${ENDPOINT}"
-    if [ -n "$QUERY" ]; then
-        ENCODED_QUERY=$(printf '%s' "$QUERY" | sed 's/ /%20/g; s/\[/%5B/g; s/\]/%5D/g')
-        URL="${URL}?${ENCODED_QUERY}"
-    fi
+    [ -n "$ENCODED_QUERY" ] && URL="${URL}?${ENCODED_QUERY}"
 
     local BODYHASH_HEADER=()
     [ -n "$BODY_HASH" ] && BODYHASH_HEADER=(-H "X-FH-BODYHASH: $BODY_HASH")
@@ -332,13 +339,13 @@ CMD_2FA() {
             local channel="${1:-EMAIL}"
             channel=$(printf '%s' "$channel" | tr '[:lower:]' '[:upper:]')
             [ "$channel" != "SMS" ] && [ "$channel" != "EMAIL" ] && channel="EMAIL"
-            _REQ POST /v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}"
+            _REQ POST /auth/v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}"
             ;;
         verify)
             local ticket="$1" otp="$2"
             [ -z "$ticket" ] || [ -z "$otp" ] && { echo "Usage: 2fa verify <ticket_id> <otp_code>" >&2; return 1; }
             local resp token exp_iso exp_epoch
-            resp=$(_REQ POST /v1/openapi/2fa/verify '' "{\"ticket_id\":\"$ticket\",\"otp_code\":\"$otp\"}") || return 1
+            resp=$(_REQ POST /auth/v1/openapi/2fa/verify '' "{\"ticket_id\":\"$ticket\",\"otp_code\":\"$otp\"}") || return 1
             token=$(printf '%s' "$resp" | jq -r '.session_token // empty')
             exp_iso=$(printf '%s' "$resp" | jq -r '.expires_at // empty')
             exp_epoch=$(printf '%s' "$resp" | jq -r '.expires_at_epoch // empty')
@@ -369,7 +376,7 @@ CMD_2FA() {
                 echo "Không có session active để revoke. File local đã được xoá."
                 return 0
             fi
-            _REQ POST /v1/openapi/2fa/revoke '' "{\"session_token\":\"$token\"}" > /dev/null || true
+            _REQ POST /auth/v1/openapi/2fa/revoke '' "{\"session_token\":\"$token\"}" > /dev/null || true
             _CLEAR_2FA_TOKEN
             echo "✅ 2FA session đã revoke (cả server + local)."
             ;;
