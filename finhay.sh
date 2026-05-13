@@ -4,6 +4,7 @@ set -e
 
 CREDS_DIR="$HOME/.finhay/credentials"
 CREDS_FILE="$CREDS_DIR/.env"
+SESSION_2FA_FILE="$CREDS_DIR/.2fa-session"
 REPO="finhay/finhay-skills-hub"
 BRANCH="main"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
@@ -27,6 +28,68 @@ _INPUT_SRC() {
     else
         echo "/dev/stdin"
     fi
+}
+
+_LOAD_2FA_TOKEN() {
+    [ -f "$SESSION_2FA_FILE" ] || return 0
+    local token exp_epoch now_epoch
+    token=$(grep "^session_token=" "$SESSION_2FA_FILE" 2>/dev/null | cut -d'=' -f2-)
+    exp_epoch=$(grep "^expires_at_epoch=" "$SESSION_2FA_FILE" 2>/dev/null | cut -d'=' -f2-)
+    [ -z "$token" ] && return 0
+    [ -z "$exp_epoch" ] && return 0
+    now_epoch=$(date -u +%s)
+    if [ "$exp_epoch" -gt "$now_epoch" ]; then
+        echo "$token"
+    fi
+}
+
+_SAVE_2FA_TOKEN() {
+    local token="$1" exp_iso="$2" exp_epoch="$3"
+    [ -d "$CREDS_DIR" ] || mkdir -p "$CREDS_DIR"
+    cat > "$SESSION_2FA_FILE" <<EOF
+session_token=$token
+expires_at=$exp_iso
+expires_at_epoch=$exp_epoch
+EOF
+    chmod 600 "$SESSION_2FA_FILE"
+}
+
+_CLEAR_2FA_TOKEN() {
+    rm -f "$SESSION_2FA_FILE"
+}
+
+_2FA_INTERACTIVE_FLOW() {
+    local input_src channel
+    input_src=$(_INPUT_SRC)
+
+    printf "Channel [SMS/EMAIL] (default EMAIL): " >&2
+    local raw=""
+    read -r raw < "$input_src" || true
+    channel=$(printf '%s' "${raw:-EMAIL}" | tr '[:lower:]' '[:upper:]')
+    [ "$channel" != "SMS" ] && [ "$channel" != "EMAIL" ] && channel="EMAIL"
+
+    local resp ticket masked
+    resp=$(_REQ POST /v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}") || return 1
+    ticket=$(printf '%s' "$resp" | jq -r '.ticket_id // empty')
+    masked=$(printf '%s' "$resp" | jq -r '.masked_destination // empty')
+    [ -z "$ticket" ] && { echo "ERROR: 2FA request failed: $resp" >&2; return 1; }
+
+    echo "📨 OTP đã gửi tới ${masked:-destination}. Hết hạn sau 5 phút." >&2
+    printf "Nhập OTP 6 số: " >&2
+    local otp=""
+    read -r otp < "$input_src" || true
+    [ -z "$otp" ] && { echo "ERROR: OTP rỗng." >&2; return 1; }
+
+    resp=$(_REQ POST /v1/openapi/2fa/verify '' "{\"ticket_id\":\"$ticket\",\"otp_code\":\"$otp\"}") || return 1
+    local token exp_iso exp_epoch
+    token=$(printf '%s' "$resp" | jq -r '.session_token // empty')
+    exp_iso=$(printf '%s' "$resp" | jq -r '.expires_at // empty')
+    exp_epoch=$(printf '%s' "$resp" | jq -r '.expires_at_epoch // empty')
+    [ -z "$token" ] && { echo "ERROR: 2FA verify failed: $resp" >&2; return 1; }
+
+    _SAVE_2FA_TOKEN "$token" "$exp_iso" "$exp_epoch"
+    echo "✅ 2FA session đã được lưu, hết hạn $exp_iso" >&2
+    return 0
 }
 
 _REQ() {
@@ -66,6 +129,11 @@ _REQ() {
     local BODYHASH_HEADER=()
     [ -n "$BODY_HASH" ] && BODYHASH_HEADER=(-H "X-FH-BODYHASH: $BODY_HASH")
 
+    local TOKEN_2FA=""
+    TOKEN_2FA=$(_LOAD_2FA_TOKEN || true)
+    local TWOFA_HEADER=()
+    [ -n "$TOKEN_2FA" ] && TWOFA_HEADER=(-H "X-FH-2FA-TOKEN: $TOKEN_2FA")
+
     local TMP=$(mktemp)
     local CODE=$(curl -sS -X "$METHOD" "$URL" \
         -H "X-FH-APIKEY: $AK" \
@@ -74,6 +142,7 @@ _REQ() {
         -H "X-FH-NONCE: $NONCE" \
         -H "X-FH-SIGNATURE: $SIG" \
         "${BODYHASH_HEADER[@]}" \
+        "${TWOFA_HEADER[@]}" \
         -H "X-FH-OPENAPI-SKILL-VERSION: $VER" \
         -H "X-FH-OPENAPI-OS: $OS" \
         -H "X-FH-OPENAPI-AGENT: $AGENT" \
@@ -82,6 +151,27 @@ _REQ() {
         -d "$BODY" -o "$TMP" -w "%{http_code}")
 
     if [ "$CODE" -ge 400 ]; then
+        if [ "$CODE" = "403" ] && [ -z "${_IN_2FA_RECOVERY:-}" ]; then
+            local err_code=""
+            err_code=$(jq -r '.error_code // empty' < "$TMP" 2>/dev/null || true)
+            case "$err_code" in
+                OTP_SESSION_REQUIRED|OTP_SESSION_EXPIRED|OTP_SESSION_INVALID|OTP_SESSION_REVOKED)
+                    _CLEAR_2FA_TOKEN
+                    rm -f "$TMP"
+                    echo "🔐 Cần xác thực OTP cho thao tác này (error: $err_code)." >&2
+                    _IN_2FA_RECOVERY=1
+                    if ! _2FA_INTERACTIVE_FLOW; then
+                        unset _IN_2FA_RECOVERY
+                        return 1
+                    fi
+                    echo "🔁 Retry lệnh gốc..." >&2
+                    local rc=0
+                    _REQ "$METHOD" "$ENDPOINT" "$QUERY" "$BODY" || rc=$?
+                    unset _IN_2FA_RECOVERY
+                    return $rc
+                    ;;
+            esac
+        fi
         echo "ERROR: HTTP $CODE" >&2
         cat "$TMP" >&2
         rm -f "$TMP"
@@ -235,6 +325,70 @@ CMD_INFER() {
     echo "✅ Account IDs resolved and saved to $CREDS_FILE"
 }
 
+CMD_2FA() {
+    local sub="$1"; shift || true
+    case "$sub" in
+        request)
+            local channel="${1:-EMAIL}"
+            channel=$(printf '%s' "$channel" | tr '[:lower:]' '[:upper:]')
+            [ "$channel" != "SMS" ] && [ "$channel" != "EMAIL" ] && channel="EMAIL"
+            _REQ POST /v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}"
+            ;;
+        verify)
+            local ticket="$1" otp="$2"
+            [ -z "$ticket" ] || [ -z "$otp" ] && { echo "Usage: 2fa verify <ticket_id> <otp_code>" >&2; return 1; }
+            local resp token exp_iso exp_epoch
+            resp=$(_REQ POST /v1/openapi/2fa/verify '' "{\"ticket_id\":\"$ticket\",\"otp_code\":\"$otp\"}") || return 1
+            token=$(printf '%s' "$resp" | jq -r '.session_token // empty')
+            exp_iso=$(printf '%s' "$resp" | jq -r '.expires_at // empty')
+            exp_epoch=$(printf '%s' "$resp" | jq -r '.expires_at_epoch // empty')
+            [ -z "$token" ] && { echo "ERROR: verify failed: $resp" >&2; return 1; }
+            _SAVE_2FA_TOKEN "$token" "$exp_iso" "$exp_epoch"
+            echo "✅ 2FA session đã lưu vào $SESSION_2FA_FILE, hết hạn $exp_iso"
+            ;;
+        status)
+            if [ ! -f "$SESSION_2FA_FILE" ]; then
+                echo "❌ Chưa có 2FA session. Chạy write request hoặc './finhay.sh 2fa request' để bắt đầu."
+                return 0
+            fi
+            local exp_iso exp_epoch now_epoch
+            exp_iso=$(grep "^expires_at=" "$SESSION_2FA_FILE" | cut -d'=' -f2-)
+            exp_epoch=$(grep "^expires_at_epoch=" "$SESSION_2FA_FILE" | cut -d'=' -f2-)
+            now_epoch=$(date -u +%s)
+            if [ -n "$exp_epoch" ] && [ "$exp_epoch" -gt "$now_epoch" ]; then
+                echo "✅ 2FA session đang hoạt động, hết hạn $exp_iso"
+            else
+                echo "⚠ 2FA session đã hết hạn ($exp_iso). Lần write tiếp theo sẽ tự kích hoạt OTP."
+            fi
+            ;;
+        revoke)
+            local token
+            token=$(_LOAD_2FA_TOKEN || true)
+            if [ -z "$token" ]; then
+                _CLEAR_2FA_TOKEN
+                echo "Không có session active để revoke. File local đã được xoá."
+                return 0
+            fi
+            _REQ POST /v1/openapi/2fa/revoke '' "{\"session_token\":\"$token\"}" > /dev/null || true
+            _CLEAR_2FA_TOKEN
+            echo "✅ 2FA session đã revoke (cả server + local)."
+            ;;
+        ""|help|*)
+            cat >&2 <<EOF
+Usage: ./finhay.sh 2fa <subcommand>
+  request [SMS|EMAIL]            Yêu cầu OTP (default EMAIL)
+  verify <ticket_id> <otp_code>  Verify OTP và lưu session JWT
+  status                         Xem trạng thái session hiện tại
+  revoke                         Huỷ session (xoá cả server + local)
+
+Khi gọi write request (place/modify/cancel order), skill sẽ tự
+detect 403 OTP_SESSION_REQUIRED và chạy interactive flow.
+EOF
+            return 1
+            ;;
+    esac
+}
+
 CMD_SYNC() {
     SKILL="$1"; [ -z "$SKILL" ] && exit 1
     FILES=$(curl -sf "${API}/git/trees/${BRANCH}?recursive=1" | jq -r --arg p "skills/$SKILL/" '.tree[] | select(.path | startswith($p)) | select(.type == "blob") | .path')
@@ -259,6 +413,7 @@ case "$1" in
     deps) CMD_DEPS ;;
     infer) CMD_INFER ;;
     request) shift; _REQ "$@" ;;
+    2fa) shift; CMD_2FA "$@" ;;
     sync) CMD_SYNC "$2" ;;
-    *) echo "Usage: ./finhay.sh {auth|doctor|deps|infer|request|sync}"; exit 1 ;;
+    *) echo "Usage: ./finhay.sh {auth|doctor|deps|infer|request|2fa|sync}"; exit 1 ;;
 esac

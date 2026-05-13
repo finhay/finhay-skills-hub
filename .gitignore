@@ -3,5 +3,5 @@ dist/
 .env
 *.log
 .DS_Store
-solution.md
 place_order.md
+solution.md

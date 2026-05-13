@@ -1,8 +1,11 @@
 $CredsDir = Join-Path $HOME ".finhay\credentials"
 $CredsFile = Join-Path $CredsDir ".env"
+$Session2faFile = Join-Path $CredsDir ".2fa-session"
 $BaseUrlDefault = "https://open-api.fhsc.com.vn"
 $Repo = "finhay/finhay-skills-hub"
 $Branch = "main"
+
+$script:_In2FARecovery = $false
 
 if ($PSCommandPath) {
     $SkillDir = Split-Path -Parent $PSCommandPath
@@ -18,7 +21,65 @@ $Deps = @(
 )
 
 function Show-Help {
-    Write-Host "Usage: .\finhay.ps1 {auth|doctor|deps|infer|request|sync}"
+    Write-Host "Usage: .\finhay.ps1 {auth|doctor|deps|infer|request|2fa|sync}"
+}
+
+function Load-2FAToken {
+    if (-not (Test-Path $Session2faFile)) { return "" }
+    $lines = Get-Content $Session2faFile -ErrorAction SilentlyContinue
+    $token = ""
+    $exp = ""
+    foreach ($line in $lines) {
+        if ($line -match '^session_token=(.+)$') { $token = $matches[1] }
+        elseif ($line -match '^expires_at_epoch=(.+)$') { $exp = $matches[1] }
+    }
+    if (-not $token -or -not $exp) { return "" }
+    $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    if ([long]$exp -gt $now) { return $token } else { return "" }
+}
+
+function Save-2FAToken {
+    param($Token, $ExpiresAt, $ExpiresAtEpoch)
+    if (-not (Test-Path $CredsDir)) { New-Item -ItemType Directory -Path $CredsDir | Out-Null }
+    $content = "session_token=$Token`nexpires_at=$ExpiresAt`nexpires_at_epoch=$ExpiresAtEpoch"
+    Set-Content -Path $Session2faFile -Value $content
+}
+
+function Clear-2FAToken {
+    if (Test-Path $Session2faFile) { Remove-Item -Path $Session2faFile -Force -ErrorAction SilentlyContinue }
+}
+
+function Invoke-2FAInteractive {
+    $channelRaw = Read-Host "Channel [SMS/EMAIL] (default EMAIL)"
+    if (-not $channelRaw) { $channelRaw = "EMAIL" }
+    $channel = $channelRaw.ToUpper()
+    if ($channel -ne "SMS" -and $channel -ne "EMAIL") { $channel = "EMAIL" }
+
+    $reqBody = "{`"channel`":`"$channel`"}"
+    $reqResp = Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/request" -Body $reqBody
+    if (-not $reqResp) { return $false }
+    $reqJson = $reqResp | ConvertFrom-Json
+    if (-not $reqJson.ticket_id) {
+        Write-Error "2FA request failed: $reqResp"
+        return $false
+    }
+
+    Write-Host ("📨 OTP đã gửi tới {0}. Hết hạn sau 5 phút." -f $reqJson.masked_destination)
+    $otp = Read-Host "Nhập OTP 6 số"
+    if (-not $otp) { Write-Error "OTP rỗng."; return $false }
+
+    $verifyBody = "{`"ticket_id`":`"$($reqJson.ticket_id)`",`"otp_code`":`"$otp`"}"
+    $verifyResp = Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/verify" -Body $verifyBody
+    if (-not $verifyResp) { return $false }
+    $verifyJson = $verifyResp | ConvertFrom-Json
+    if (-not $verifyJson.session_token) {
+        Write-Error "2FA verify failed: $verifyResp"
+        return $false
+    }
+
+    Save-2FAToken -Token $verifyJson.session_token -ExpiresAt $verifyJson.expires_at -ExpiresAtEpoch $verifyJson.expires_at_epoch
+    Write-Host ("✅ 2FA session đã được lưu, hết hạn {0}" -f $verifyJson.expires_at)
+    return $true
 }
 
 function Request-Internal {
@@ -80,13 +141,47 @@ function Request-Internal {
         "User-Agent" = "finhay-skills-hub/${Skill}@${Ver} (${Agent}; ${Os})"
     }
     if ($BodyHash) { $Headers["X-FH-BODYHASH"] = $BodyHash }
+
+    $token2fa = Load-2FAToken
+    if ($token2fa) { $Headers["X-FH-2FA-TOKEN"] = $token2fa }
+
     try {
         $Params = @{ Uri = $Url; Method = $Method; Headers = $Headers; ContentType = "application/json" }
         if ($Body) { $Params.Body = $Body }
         $Resp = Invoke-RestMethod @Params
         return $Resp | ConvertTo-Json -Depth 10
     } catch {
-        Write-Error "ERROR: Request failed. $($_.Exception.Message)"
+        $statusCode = $null
+        $errorBody = ""
+        if ($_.Exception.Response) {
+            $statusCode = [int]$_.Exception.Response.StatusCode
+            try {
+                $stream = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($stream)
+                $errorBody = $reader.ReadToEnd()
+            } catch {}
+        }
+
+        if ($statusCode -eq 403 -and -not $script:_In2FARecovery) {
+            $errJson = $null
+            try { $errJson = $errorBody | ConvertFrom-Json } catch {}
+            if ($errJson -and $errJson.error_code -in @('OTP_SESSION_REQUIRED','OTP_SESSION_EXPIRED','OTP_SESSION_INVALID','OTP_SESSION_REVOKED')) {
+                Clear-2FAToken
+                Write-Host ("🔐 Cần xác thực OTP cho thao tác này (error: {0})." -f $errJson.error_code)
+                $script:_In2FARecovery = $true
+                try {
+                    if (Invoke-2FAInteractive) {
+                        Write-Host "🔁 Retry lệnh gốc..."
+                        return Request-Internal -Method $Method -Endpoint $Endpoint -Query $Query -Body $Body
+                    }
+                } finally {
+                    $script:_In2FARecovery = $false
+                }
+                return
+            }
+        }
+
+        Write-Error "ERROR: HTTP $statusCode - $errorBody"
         return
     }
 }
@@ -220,6 +315,70 @@ function Cmd-Infer {
     Write-Host "✅ Account IDs resolved and saved to $CredsFile"
 }
 
+function Cmd-2FA {
+    param($Sub, $A1, $A2)
+    switch ($Sub) {
+        "request" {
+            $channel = if ($A1) { $A1.ToUpper() } else { "EMAIL" }
+            if ($channel -ne "SMS" -and $channel -ne "EMAIL") { $channel = "EMAIL" }
+            Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/request" -Body "{`"channel`":`"$channel`"}"
+        }
+        "verify" {
+            if (-not $A1 -or -not $A2) {
+                Write-Error "Usage: 2fa verify <ticket_id> <otp_code>"
+                return
+            }
+            $body = "{`"ticket_id`":`"$A1`",`"otp_code`":`"$A2`"}"
+            $resp = Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/verify" -Body $body
+            if (-not $resp) { return }
+            $json = $resp | ConvertFrom-Json
+            if (-not $json.session_token) {
+                Write-Error "verify failed: $resp"
+                return
+            }
+            Save-2FAToken -Token $json.session_token -ExpiresAt $json.expires_at -ExpiresAtEpoch $json.expires_at_epoch
+            Write-Host ("✅ 2FA session đã lưu vào {0}, hết hạn {1}" -f $Session2faFile, $json.expires_at)
+        }
+        "status" {
+            if (-not (Test-Path $Session2faFile)) {
+                Write-Host "❌ Chưa có 2FA session. Chạy write request hoặc '.\finhay.ps1 2fa request' để bắt đầu."
+                return
+            }
+            $lines = Get-Content $Session2faFile
+            $exp_iso = ""
+            $exp_epoch = ""
+            foreach ($line in $lines) {
+                if ($line -match '^expires_at=(.+)$') { $exp_iso = $matches[1] }
+                elseif ($line -match '^expires_at_epoch=(.+)$') { $exp_epoch = $matches[1] }
+            }
+            $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+            if ($exp_epoch -and [long]$exp_epoch -gt $now) {
+                Write-Host ("✅ 2FA session đang hoạt động, hết hạn {0}" -f $exp_iso)
+            } else {
+                Write-Host ("⚠ 2FA session đã hết hạn ({0}). Lần write tiếp theo sẽ tự kích hoạt OTP." -f $exp_iso)
+            }
+        }
+        "revoke" {
+            $token = Load-2FAToken
+            if (-not $token) {
+                Clear-2FAToken
+                Write-Host "Không có session active để revoke. File local đã được xoá."
+                return
+            }
+            Request-Internal -Method "POST" -Endpoint "/v1/openapi/2fa/revoke" -Body "{`"session_token`":`"$token`"}" | Out-Null
+            Clear-2FAToken
+            Write-Host "✅ 2FA session đã revoke (cả server + local)."
+        }
+        default {
+            Write-Host "Usage: .\finhay.ps1 2fa <subcommand>"
+            Write-Host "  request [SMS|EMAIL]            Yêu cầu OTP (default EMAIL)"
+            Write-Host "  verify <ticket_id> <otp_code>  Verify OTP và lưu session JWT"
+            Write-Host "  status                         Xem trạng thái session hiện tại"
+            Write-Host "  revoke                         Huỷ session (cả server + local)"
+        }
+    }
+}
+
 function Cmd-Sync {
     param($Skill)
     if (-not $Skill) { exit 1 }
@@ -255,6 +414,7 @@ switch ($Command) {
     "deps"    { Cmd-Deps }
     "infer"   { Cmd-Infer }
     "request" { Request-Internal -Method $ArgsList[0] -Endpoint $ArgsList[1] -Query $ArgsList[2] -Body $ArgsList[3] }
+    "2fa"     { Cmd-2FA -Sub $ArgsList[0] -A1 $ArgsList[1] -A2 $ArgsList[2] }
     "sync"    { Cmd-Sync -Skill $ArgsList[0] }
     default   { Show-Help }
 }

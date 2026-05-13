@@ -28,6 +28,7 @@ All interactions use the unified `finhay.sh` (or `finhay.ps1`) script.
 - `doctor`: Check environment and dependency status.
 - `infer`: Automatically resolve `USER_ID` and sub-account IDs.
 - `request`: Make signed API calls.
+- `2fa`: Manage the daily OTP session that gates `place/modify/cancel` order endpoints (subcommands: `request`, `verify`, `status`, `revoke`).
 
 ```bash
 ./finhay.sh request GET /market/stock-realtime "symbol=VNM"
