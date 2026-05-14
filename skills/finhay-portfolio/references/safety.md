@@ -1,6 +1,8 @@
 # Safety Protocol — Detailed Reference
 
-This document expands on the Safety Protocol in SKILL.md. Every order operation **must** follow all 5 steps.
+This document expands on the Safety Protocol in SKILL.md. Every order operation — **place, modify, AND cancel** — must follow all 6 steps, including the 2FA preflight in Step 5.
+
+> **2FA is required for all three write actions** (`POST` place, `PUT` modify, `DELETE` cancel). The gateway rejects the request with `OTP_SESSION_REQUIRED` / `EXPIRED` / `INVALID` / `REVOKED` if there is no valid `X-FH-2FA-TOKEN` on the request. Don't skip Step 5 just because the action is a modify/cancel.
 
 ## Confirmation Dialog Examples
 
