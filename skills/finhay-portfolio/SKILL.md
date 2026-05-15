@@ -99,12 +99,12 @@ Every **write** call to `/trading/oa/sub-accounts/.../orders` (POST place / PUT 
 
 **How the agent should drive this**: after the user has confirmed an order (Step 4 of the Safety Protocol), the agent calls `./finhay.sh 2fa status` to detect the session state, and only initiates the OTP flow if the session is missing or expired. Full step-by-step is in [Order Execution → Step 5 — 2FA Session preflight](#step-5--2fa-session-preflight).
 
-`./finhay.sh` (and the PowerShell equivalent) also keep a **reactive safety net**: if a write request still receives `403 OTP_SESSION_REQUIRED`/`EXPIRED`/`INVALID`/`REVOKED` (e.g. the local file is in sync but the server revoked the session), the skill catches the response, prompts for channel + OTP, and retries the original write transparently. The proactive preflight in Step 5 should make this path rare in practice.
+`./finhay.sh` (and the PowerShell equivalent) also keep a **reactive safety net**: if a write request still receives `403 OTP_SESSION_REQUIRED`/`EXPIRED`/`INVALID`/`REVOKED` (e.g. the local file is in sync but the server revoked the session), the skill catches the response, sends an OTP to the registered email, prompts for the 6-digit code, and retries the original write transparently. The proactive preflight in Step 5 should make this path rare in practice.
 
 ### Manual control
 
 ```bash
-./finhay.sh 2fa request EMAIL                    # send OTP (default channel: EMAIL)
+./finhay.sh 2fa request                          # send OTP to the registered email
 ./finhay.sh 2fa verify <ticket_id> <6-digit otp> # consume OTP, save session
 ./finhay.sh 2fa status                           # show current session + expiry
 ./finhay.sh 2fa revoke                           # invalidate session (server + local)
@@ -125,7 +125,7 @@ Limits enforced by the auth service:
 | `OTP_INVALID` | Wrong code; remaining attempts in `message` |
 | `OTP_LOCKED` | Ticket consumed all attempts; request a new one |
 | `OTP_RATE_LIMIT_EXCEEDED` | Hit 5 OTP requests today; wait until tomorrow |
-| `OTP_CONTACT_UNAVAILABLE` | No phone / email registered for that channel |
+| `OTP_CONTACT_UNAVAILABLE` | No email registered on the account |
 
 > The session is **per api_key**, not per machine. Using the same key from two terminals is fine — multi-session is allowed.
 
@@ -204,19 +204,18 @@ Branch on the output (which encodes the 3 possible scenarios):
 
 **OTP flow** (for scenarios A and C only):
 
-1. Ask the user which channel to receive the OTP on: **SMS** or **EMAIL** (default `EMAIL`).
-2. Request the OTP:
+1. Request the OTP — it is always delivered to the email registered on the user's account:
    ```bash
-   ./finhay.sh 2fa request EMAIL
+   ./finhay.sh 2fa request
    ```
    The response prints a `ticket_id` and `masked_destination` (e.g. `u***@gmail.com`). Show the masked destination to the user so they know where to look.
-3. Ask the user for the 6-digit code they received.
-4. Verify and save the session:
+2. Ask the user for the 6-digit code they received.
+3. Verify and save the session:
    ```bash
    ./finhay.sh 2fa verify <ticket_id> <6-digit-otp>
    ```
    On success the JWT session token is written to `~/.finhay/credentials/.2fa-session` (mode `0600`). On failure the error code tells you what to do (see "Failure modes" in the 2FA Session section above).
-5. Only after `verify` succeeds, continue to Step 6.
+4. Only after `verify` succeeds, continue to Step 6.
 
 > Do **not** call any write order endpoint before this step completes successfully — the request will be rejected with `OTP_SESSION_REQUIRED`/`EXPIRED`/`INVALID`/`REVOKED` at the gateway.
 

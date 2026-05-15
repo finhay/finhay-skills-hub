@@ -59,17 +59,11 @@ _CLEAR_2FA_TOKEN() {
 }
 
 _2FA_INTERACTIVE_FLOW() {
-    local input_src channel
+    local input_src
     input_src=$(_INPUT_SRC)
 
-    printf "Channel [SMS/EMAIL] (default EMAIL): " >&2
-    local raw=""
-    read -r raw < "$input_src" || true
-    channel=$(printf '%s' "${raw:-EMAIL}" | tr '[:lower:]' '[:upper:]')
-    [ "$channel" != "SMS" ] && [ "$channel" != "EMAIL" ] && channel="EMAIL"
-
     local resp ticket masked
-    resp=$(_REQ POST /auth/v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}") || return 1
+    resp=$(_REQ POST /auth/v1/openapi/2fa/request '' "{\"channel\":\"EMAIL\"}") || return 1
     ticket=$(printf '%s' "$resp" | jq -r '.ticket_id // empty')
     masked=$(printf '%s' "$resp" | jq -r '.masked_destination // empty')
     [ -z "$ticket" ] && { echo "ERROR: 2FA request failed: $resp" >&2; return 1; }
@@ -336,10 +330,7 @@ CMD_2FA() {
     local sub="$1"; shift || true
     case "$sub" in
         request)
-            local channel="${1:-EMAIL}"
-            channel=$(printf '%s' "$channel" | tr '[:lower:]' '[:upper:]')
-            [ "$channel" != "SMS" ] && [ "$channel" != "EMAIL" ] && channel="EMAIL"
-            _REQ POST /auth/v1/openapi/2fa/request '' "{\"channel\":\"$channel\"}"
+            _REQ POST /auth/v1/openapi/2fa/request '' "{\"channel\":\"EMAIL\"}"
             ;;
         verify)
             local ticket="$1" otp="$2"
@@ -383,7 +374,7 @@ CMD_2FA() {
         ""|help|*)
             cat >&2 <<EOF
 Usage: ./finhay.sh 2fa <subcommand>
-  request [SMS|EMAIL]            Yêu cầu OTP (default EMAIL)
+  request                        Yêu cầu OTP qua email
   verify <ticket_id> <otp_code>  Verify OTP và lưu session JWT
   status                         Xem trạng thái session hiện tại
   revoke                         Huỷ session (xoá cả server + local)

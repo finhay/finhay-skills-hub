@@ -50,12 +50,7 @@ function Clear-2FAToken {
 }
 
 function Invoke-2FAInteractive {
-    $channelRaw = Read-Host "Channel [SMS/EMAIL] (default EMAIL)"
-    if (-not $channelRaw) { $channelRaw = "EMAIL" }
-    $channel = $channelRaw.ToUpper()
-    if ($channel -ne "SMS" -and $channel -ne "EMAIL") { $channel = "EMAIL" }
-
-    $reqBody = "{`"channel`":`"$channel`"}"
+    $reqBody = "{`"channel`":`"EMAIL`"}"
     $reqResp = Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/request" -Body $reqBody
     if (-not $reqResp) { return $false }
     $reqJson = $reqResp | ConvertFrom-Json
@@ -326,9 +321,7 @@ function Cmd-2FA {
     param($Sub, $A1, $A2)
     switch ($Sub) {
         "request" {
-            $channel = if ($A1) { $A1.ToUpper() } else { "EMAIL" }
-            if ($channel -ne "SMS" -and $channel -ne "EMAIL") { $channel = "EMAIL" }
-            Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/request" -Body "{`"channel`":`"$channel`"}"
+            Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/request" -Body "{`"channel`":`"EMAIL`"}"
         }
         "verify" {
             if (-not $A1 -or -not $A2) {
@@ -378,7 +371,7 @@ function Cmd-2FA {
         }
         default {
             Write-Host "Usage: .\finhay.ps1 2fa <subcommand>"
-            Write-Host "  request [SMS|EMAIL]            Yêu cầu OTP (default EMAIL)"
+            Write-Host "  request                        Yêu cầu OTP qua email"
             Write-Host "  verify <ticket_id> <otp_code>  Verify OTP và lưu session JWT"
             Write-Host "  status                         Xem trạng thái session hiện tại"
             Write-Host "  revoke                         Huỷ session (cả server + local)"
