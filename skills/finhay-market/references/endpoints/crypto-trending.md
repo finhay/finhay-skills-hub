@@ -1,20 +1,20 @@
-# Top Trending Cryptos
+# Crypto Trending
 
-## `GET /market/financial-data/cryptos/top-trending`
+## `GET /market/crypto/trending`
 
-Retrieve top trending cryptocurrencies.
+List of top trending cryptocurrencies with price, market cap, and multi-timeframe change percentages.
 
 ---
 
 ### OpenAPI Spec
 
 ```yaml
-/market/financial-data/cryptos/top-trending:
+/market/crypto/trending:
   get:
     summary: Get top trending cryptocurrencies
-    operationId: getTopTrendingCryptos
+    operationId: getCryptoTrending
     tags:
-      - Financial Data
+      - Crypto
     parameters: []
     responses:
       '200':
@@ -47,45 +47,42 @@ components:
       properties:
         name:
           type: string
-          description: Cryptocurrency name
           example: Bitcoin
         symbol:
           type: string
-          description: Cryptocurrency symbol
           example: BTC
         icon_url:
           type: string
-          description: Icon URL
-          example: https://example.com/btc.png
+          description: URL to the coin icon image
         price:
           type: number
-          description: Current price in USD
-          example: 67500.25
+          example: 103500.5
         formatted_price:
           type: string
-          description: Price formatted in Vietnamese locale
-          example: "67.500,25"
+          description: Price formatted with VN locale separator
+          example: "103.500,5"
         percent_change_1h:
           type: number
-          description: Price change in the last 1 hour (%)
-          example: 0.5
+          example: 0.12
         percent_change_24h:
           type: number
-          description: Price change in the last 24 hours (%)
-          example: -1.2
+          example: -1.45
         percent_change_7d:
           type: number
-          description: Price change in the last 7 days (%)
-          example: 3.8
+          example: 3.21
         percent_change_30d:
           type: number
-          description: Price change in the last 30 days (%)
           example: 12.5
         market_cap:
           type: number
-          description: Market capitalization in USD
-          example: 1325000000000
+          example: 2040000000000
         last_30d_chart:
           type: string
-          description: URL or data for 30-day sparkline chart
+          description: Sparkline data for the 30-day chart (provider-specific format)
 ```
+
+### Notes
+
+- No parameters — returns all available trending coins.
+- `formatted_price` uses Vietnamese locale format (dots as thousands separators, comma as decimal).
+- `last_30d_chart` format depends on the upstream data provider; treat as an opaque string.

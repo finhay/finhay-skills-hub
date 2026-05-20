@@ -8,59 +8,85 @@ Signing: use `./finhay.sh request` (or `.\finhay.ps1 request`).
 
 Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mismatch in signature.
 
-## Response Keys
 
-- `result` — stock-realtime
-- `data` — all other endpoints
-
----
-
-## Stock
+## Tickers — VN Stocks
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 1 | `/market/stock-realtime` | 1-of: `symbol`, `symbols`, `exchange` | `result` | object for `symbol`, array for `symbols`/`exchange` | [detail](./endpoints/stock-realtime.md) |
+| 1 | `GET /market/tickers/:ticker` | `:ticker`* (path) | `data` | single stock real-time object | [detail](./endpoints/stocks.md) |
+| 2 | `GET /market/tickers` | 1-of: `symbols` (CSV), `exchange` (`HOSE`\|`HNX`\|`UPCOM`) | `data` | array of stocks | [detail](./endpoints/stocks.md) |
+| 3 | `GET /market/tickers/global/:ticker/history` | `:ticker`* (`apple`\|`microsoft`\|`alphabet`\|`amazon`\|`meta`\|`nvidia`\|`tesla`), `limit` (default 30) | `data` | daily close price history for Mag7 stocks | [detail](./endpoints/stocks-global.md) |
 
 ## News
 
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/global-news` | `category` (enum), `page`, `page_size` | `data` | global financial news | [detail](./endpoints/global-news.md) |
+| 2 | `GET /market/global-news/:id` | `:id`* (path, integer) | `data` | global news article detail | [detail](./endpoints/global-news.md) |
+| 3 | `GET /market/tickers/:ticker/corporate-actions` | `:ticker`* (path), `from_date`, `to_date` | `data` | VN corporate actions for a ticker (dividends, AGM, rights) | [detail](./endpoints/corporate-actions.md) |
+
+## Commodities — VN Metals
+
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/commodities/vn/metals` | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`) | `data` | single spot price record | [detail](./endpoints/commodities-vn-metals.md) |
+| 2 | `GET /market/commodities/vn/metals/history` | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`), `days` (default 30) | `data` | price series for one product | [detail](./endpoints/commodities-vn-metals.md) |
+| 3 | `GET /market/commodities/vn/metals/providers` | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`) | `data` | spot prices across all providers | [detail](./endpoints/commodities-vn-metals.md) |
+
+## Commodities — Global Metals
+
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/commodities/global/metals` | `type`* (`gold`\|`silver`\|`copper`) | `data` | spot + daily change | [detail](./endpoints/commodities-global-metals.md) |
+| 2 | `GET /market/commodities/global/metals/history` | `type`* (`gold`\|`silver`\|`copper`), `limit` (default 30) | `data` | time-series descending | [detail](./endpoints/commodities-global-metals.md) |
+
+## Commodities — Global Energy
+
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/commodities/global/energy` | `type` (`crude-oil`\|`brent-oil`\|`natural-gas`\|`all`, default `all`) | `data` | spot + change | [detail](./endpoints/commodities-global-energy.md) |
+| 2 | `GET /market/commodities/global/energy/history` | `type` (required, one of above excl. `all`), `limit` (default 30) | `data` | time-series descending | [detail](./endpoints/commodities-global-energy.md) |
+
+## Economy
+
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/economy/snapshot` | `type`*, `country`*, `period` | `data` | current macro indicator | [detail](./endpoints/economy.md) |
+| 2 | `GET /market/economy/indicators` | `country`* (enum), `category`* (enum), `year`, `limit` (default 50), `offset` | `data` | historical economic indicators | [detail](./endpoints/economy.md) |
+| 3 | `GET /market/economy/calendar` | `weeks` (default 1), `country` (e.g. `China`, `Vietnam`) | `data` | upcoming economic events | [detail](./endpoints/economy.md) |
+
+## Crypto
+
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 1 | `/market/news` | `stock`, `stocks`, `from_date`, `to_date` (all optional) | `result` | [detail](./endpoints/news.md) |
+| 1 | `GET /market/crypto/trending` | — | `data` | [detail](./endpoints/crypto-trending.md) |
 
-## Financial Data — Precious Metals
-
-| # | Path | Params | Res key | Detail |
-|---|------|--------|---------|--------|
-| 1 | `/market/financial-data` | — | `data` | [detail](./endpoints/financial-data.md) |
-| 2 | `/market/financial-data/gold` | — | `data` | [detail](./endpoints/gold.md) |
-| 3 | `/market/financial-data/silver` | — | `data` | [detail](./endpoints/silver.md) |
-| 4 | `/market/financial-data/gold-chart` | `days` (default 30) | `data` | [detail](./endpoints/gold-chart.md) |
-| 5 | `/market/financial-data/silver-chart` | `days` (default 30) | `data` | [detail](./endpoints/silver-chart.md) |
-| 6 | `/market/financial-data/gold-providers` | — | `data` | [detail](./endpoints/gold-providers.md) |
-| 7 | `/market/financial-data/metal-providers` | — | `data` | [detail](./endpoints/metal-providers.md) |
-
-## Financial Data — Other
+## Banking
 
 | # | Path | Params | Res key | Detail |
 |---|------|--------|---------|--------|
-| 1 | `/market/financial-data/bank-interest-rates` | — | `data` | [detail](./endpoints/bank-interest-rates.md) |
-| 2 | `/market/financial-data/cryptos/top-trending` | — | `data` | [detail](./endpoints/cryptos-top-trending.md) |
-| 3 | `/market/financial-data/macro` | `type`*, `country`*, `period` | `data` | [detail](./endpoints/macro.md) |
-| 4 | `/market/financial-data/trading-economics` | `country`* (enum), `category` (enum), `year` | `data` | [detail](./endpoints/trading-economics.md) |
-| 5 | `/market/financial-data/global-news` | `category` (enum), `page`, `page_size` (max 50, default 20) | `data` | [detail](./endpoints/global-news.md) |
-| 6 | `/market/financial-data/global-news/:id` | `:id`* (path) | `data` | [detail](./endpoints/global-news.md) |
+| 1 | `GET /market/banking/deposit-rates` | — | `data` | [detail](./endpoints/banking-deposit-rates.md) |
 
-## Financial Data — Market Indices & Assets
+## Currencies
 
-| # | Path | Params | Res key | Detail |
-|---|------|--------|---------|--------|
-| 1 | `/market/financial-data/market` | `type`* (enum), `limit` (default 50, max 500) | `data` | [detail](./endpoints/market-data.md) |
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/currencies/:pair/history` | `:pair`* (`USD`\|`CNY`\|`EUR`\|`JPY`), `period` (`1M`\|`1Y`\|`YTD`, default `1M`), `value_type` | `data` | VND exchange rate history, grouped by bank | [detail](./endpoints/currencies.md) |
+| 2 | `GET /market/currencies/cross/:pair/history` | `:pair`* (`eurusd`\|`usdjpy`\|`gbpusd`), `limit` (default 30) | `data` | cross-rate daily price series | [detail](./endpoints/currencies-cross.md) |
 
-## Financial Data — Economic Calendar
+## Indices
 
-| # | Path | Params | Res key | Detail |
-|---|------|--------|---------|--------|
-| 1 | `/market/financial-data/economic-calendar-events` | `weeks` (default 1), `country` (optional, e.g. `China`, `Vietnam`) | `data` | [detail](./endpoints/economic-calendar-events.md) |
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/global-indices/:code/history` | `:code`* (`sp500`, `nasdaq`, `dow-jones`, `russell2000`, `vix`, `dxy`, `kospi`, `hangseng`, `shanghai`, `nikkei`), `limit` (default 50) | `data` | historical prices descending | [detail](./endpoints/indices.md) |
+
+## Tickers — Fundamentals
+
+| # | Path | Params | Res key | Note | Detail |
+|---|------|--------|---------|------|--------|
+| 1 | `GET /market/tickers/:ticker/ratios` | `:ticker`* (path), `period`* (`annual`\|`quarterly`) | `data` | financial ratio history | [detail](./endpoints/tickers-ratios.md) |
+| 3 | `GET /market/tickers/:ticker/statements` | `:ticker`* (path), `statement`* (`income-statement`\|`balance-sheet`\|`cash-flow`), `period`* (`annual`\|`quarterly`), `limit` (default 5) | `data` | financial statements | [detail](./endpoints/tickers-statements.md) |
+| 4 | `GET /market/tickers/:ticker/candles` | `:ticker`* (path), `resolution` (`1D`\|`1H`\|`4H`\|`30`\|`15`\|`5`), `from`*, `to`* (seconds) | `data` | OHLCV candle data | [detail](./endpoints/tickers-candles.md) |
 
 ## Funds
 
@@ -73,61 +99,68 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | 5 | `/fund-trading/public/fund-certificates/:fund/nav-histories` | `:fund`* (path), `period` (default `ALL_TIME`) | `data` | [detail](./endpoints/fund-nav-history.md) |
 | 6 | `/fund-trading/public/fund-certificates/:fund/suggestions` | `:fund`* (path) | `data` | [detail](./endpoints/fund-details.md) |
 
-## Reports
-
-| # | Path | Params | Res key | Detail |
-|---|------|--------|---------|--------|
-| 1 | `/market/recommendation-reports/:symbol` | `symbol`* (path) | `data` | [detail](./endpoints/recommendation-reports.md) |
-
-## Price History
-
-| # | Path | Params | Res key | Note | Detail |
-|---|------|--------|---------|------|--------|
-| 1 | `/market/price-histories-chart` | `symbol`*, `resolution`* (`1D`, `5`, `15`, `30`, `1H`, `4H`, default `1D`), `from`*, `to`* (seconds) | `data` | `from`/`to` in **seconds** not ms | [detail](./endpoints/price-histories-chart.md) |
-
-## Company Financial
-
-| # | Path | Params | Res key | Detail |
-|---|------|--------|---------|--------|
-| 1 | `/market/company-financial/overview` | `symbol`* | `data` | [detail](./endpoints/company-financial-overview.md) |
-| 2 | `/market/company-financial/analysis` | `symbol`*, `period` (`annual`\|`quarterly`) | `data` | [detail](./endpoints/company-financial-analysis.md) |
-| 3 | `/market/v2/financial-statement/statement` | `symbol`*, `type`* (`income-statement`\|`balance-sheet`\|`cash-flow`), `period` (`annual`\|`quarterly`), `limit` | `data` | [detail](./endpoints/financial-statement.md) |
-
 ---
 
-## Choosing the Right Company Financial Endpoint
+## Choosing the Right Endpoint
+
+### Tickers
 
 | Need | Endpoint |
 |------|----------|
-| Current ratios (PE, PB, ROE, EPS…) | `/company-financial/overview` |
-| Trend of ratios over years/quarters | `/company-financial/analysis` |
-| Income statement / balance sheet / cash flow | `/market/v2/financial-statement/statement` |
+| Single stock real-time quote (VN) | `GET /market/tickers/:ticker` |
+| Multiple stocks or whole exchange (VN) | `GET /market/tickers?symbols=HPG,VNM` or `?exchange=HOSE` |
+| Daily price history for Mag7 global stocks | `GET /market/tickers/global/apple/history?limit=30` |
 
-`type` values for statement endpoints: `income-statement`, `balance-sheet`, `cash-flow`
-`period` values: `annual`, `quarterly`
+| Financial ratio history (PE, PB, ROE…) | `GET /market/tickers/:ticker/ratios` |
+| Income statement / balance sheet / cash flow | `GET /market/tickers/:ticker/statements?statement=income-statement&period=annual` |
+| OHLCV candle data | `GET /market/tickers/:ticker/candles` |
 
----
-
-## Choosing the Right Financial Data Endpoint
+### Commodities
 
 | Need | Endpoint |
 |------|----------|
-| Everything (gold + silver + crypto + bank rates) | `/market/financial-data` |
-| Only gold (SJC + global) | `/market/financial-data/gold` |
-| Gold by provider (PNJ, DOJI, BTMC...) | `/market/financial-data/gold-providers` |
-| Gold chart (N days) | `/market/financial-data/gold-chart?days=N` |
-| Silver equivalents | replace `gold` → `silver` |
-| Macro (CPI, PMI, interest rates...) | `/market/financial-data/macro` |
-| Historical economic indicators by country (GDP, inflation, trade...) | `/market/financial-data/trading-economics?country=<NAME>&category=<CAT>` |
-| Bank deposit rates | `/market/financial-data/bank-interest-rates` |
-| Top crypto | `/market/financial-data/cryptos/top-trending` |
-| Historical price for global indices, Mag7 stocks, commodities, forex | `/market/financial-data/market?type=<TYPE>` |
-| Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |
-| Global financial news (forex, commodities, crypto, macro…) | `/market/financial-data/global-news?category=<CAT>&page=N` |
-| Full article content by ID | `/market/financial-data/global-news/:id` |
-| Fund list (with `fund-type` filter) | `/fund-trading/public/fund-certificates?fund-type=<TYPE>` |
-| Simulate growth of a VND investment | `/fund-trading/public/fund-certificates/benchmark/growth` |
-| Compare NAV time series | `/fund-trading/public/fund-certificates/benchmark/nav` |
-| Similar funds | `/fund-trading/public/fund-certificates/:fund/suggestions` |
-| Fund NAV historical chart | `/fund-trading/public/fund-certificates/:fund/nav-histories` |
-| Fund management companies | `/fund-trading/public/fund-companies` |
+| VN gold/silver spot prices | `GET /market/commodities/vn/metals?type=gold` |
+| VN metals by provider (PNJ, DOJI…) | `GET /market/commodities/vn/metals/providers?type=gold` |
+| VN metals price history (N days) | `GET /market/commodities/vn/metals/history?type=gold&days=30` |
+| Global gold/silver/copper spot | `GET /market/commodities/global/metals?type=gold` |
+| Global metals history | `GET /market/commodities/global/metals/history?type=gold` |
+| Crude/Brent oil or natural gas spot | `GET /market/commodities/global/energy` |
+| Energy history | `GET /market/commodities/global/energy/history?type=crude-oil` |
+
+### Economy / Macro
+
+| Need | Endpoint |
+|------|----------|
+| Current macro indicator (CPI, PMI…) | `GET /market/economy/snapshot?type=CPI&country=VN&period=...` |
+| Historical economic indicators by country (GDP, inflation…) | `GET /market/economy/indicators?country=Vietnam&category=GDP` |
+| Upcoming economic events (Fed meetings, CPI releases…) | `GET /market/economy/calendar?weeks=2&country=United States` |
+| 10Y government bond yield | `GET /market/economy/snapshot?type=GOVERNMENT_10Y_BOND_YIELD&country=US` |
+
+### Currencies / Forex
+
+| Need | Endpoint |
+|------|----------|
+| Exchange rate history vs VND (by bank) | `GET /market/currencies/USD/history?period=1M` |
+| Cross-rate history (EUR/USD, USD/JPY…) | `GET /market/currencies/cross/eurusd/history?limit=30` |
+
+### Global Indices
+
+| Need | Endpoint |
+|------|----------|
+| Historical prices for one index | `GET /market/indices/sp500/history?limit=50` |
+
+### News
+
+| Need | Endpoint |
+|------|----------|
+| Global financial news | `GET /market/global-news?category=forex` |
+| Full article content | `GET /market/global-news/:id` |
+| VN corporate actions (dividends, AGM, rights…) | `GET /market/tickers/VNM/corporate-actions` |
+
+### Other
+
+| Need | Endpoint |
+|------|----------|
+| Top trending crypto | `GET /market/crypto/trending` |
+| Bank deposit interest rates | `GET /market/banking/deposit-rates` |
+
