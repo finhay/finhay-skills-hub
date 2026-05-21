@@ -22,11 +22,10 @@ Time-series for a specific energy commodity, descending by date.
     parameters:
       - name: type
         in: query
-        required: false
+        required: true
         schema:
           type: string
-          enum: [crude-oil, brent-oil, natural-gas, all]
-          default: all
+          enum: [crude-oil, brent-oil, natural-gas]
     responses:
       '200':
         description: Successful response

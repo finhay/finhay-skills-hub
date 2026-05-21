@@ -65,11 +65,11 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 | Endpoint | Description | Params |
 |----------|-------------|--------|
 | `GET /market/commodities/vn/metals` | **VN Metals Spot**: Single spot price for a product. Use `/providers` for all providers. | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`) |
-| `GET /market/commodities/vn/metals/history` | **VN Metals History**: N-day price series for a product. | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`), `days` (default 30) |
+| `GET /market/commodities/vn/metals/history` | **VN Metals History**: N-day price series for a product. | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`), `days` (default 30, max 365) |
 | `GET /market/commodities/vn/metals/providers` | **VN Metal Providers**: Spot prices across all providers for a product. | `type`* (`gold_bar`\|`gold_ring`\|`silver_bar`) |
 | `GET /market/commodities/global/metals` | **Global Metals Spot**: International gold, silver, copper spot prices with daily change. | `type`* (`gold`\|`silver`\|`copper`) |
 | `GET /market/commodities/global/metals/history` | **Global Metals History**: Time-series for gold, silver, or copper. | `type`* (`gold`\|`silver`\|`copper`), `limit` (default 30) |
-| `GET /market/commodities/global/energy` | **Energy Spot**: Crude oil, Brent oil, natural gas spot prices with change. | `type` (`crude-oil`\|`brent-oil`\|`natural-gas`\|`all`) |
+| `GET /market/commodities/global/energy` | **Energy Spot**: Crude oil, Brent oil, natural gas spot prices with change. | `type`* (`crude-oil`\|`brent-oil`\|`natural-gas`) |
 | `GET /market/commodities/global/energy/history` | **Energy History**: Time-series for a specific energy commodity. | `type` (required), `limit` (default 30) |
 
 ### Economy & Macro

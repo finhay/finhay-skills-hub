@@ -44,7 +44,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
-| 1 | `GET /market/commodities/global/energy` | `type` (`crude-oil`\|`brent-oil`\|`natural-gas`\|`all`, default `all`) | `data` | spot + change | [detail](./endpoints/commodities-global-energy.md) |
+| 1 | `GET /market/commodities/global/energy` | `type`* (`crude-oil`\|`brent-oil`\|`natural-gas`) | `data` | spot + change | [detail](./endpoints/commodities-global-energy.md) |
 | 2 | `GET /market/commodities/global/energy/history` | `type` (required, one of above excl. `all`), `limit` (default 30) | `data` | time-series descending | [detail](./endpoints/commodities-global-energy.md) |
 
 ## Economy
