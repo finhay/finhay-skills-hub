@@ -59,7 +59,7 @@ Retrieve detail for a specific order from the order book.
 
 ### Config Required
 
-- `{subAccountId}` — inferred via `infer-sub-account.sh`
+- `{subAccountId}` — populated by `./finhay.sh infer` (env var `SUB_ACCOUNT_NORMAL` or `SUB_ACCOUNT_MARGIN`)
 
 ### Components
 

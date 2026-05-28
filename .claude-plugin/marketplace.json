@@ -1,19 +1,19 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "finhay-skills-hub",
-  "description": "Agent skills for the Finhay Securities Open API — stock prices, funds, gold, macro data, trading accounts, portfolios, and orders",
+  "description": "Agent skills for the Finhay Securities Open API — stock prices, funds, gold, macro data, trading accounts, portfolios, and order execution",
   "owner": {
     "name": "Finhay Securities"
   },
   "metadata": {
-    "description": "Finhay skills for Vietnamese stock market data and personal brokerage account queries via Finhay Securities Open API"
+    "description": "Finhay skills for Vietnamese stock market data, personal brokerage account queries, and stock order execution via Finhay Securities Open API"
   },
   "plugins": [
     {
       "name": "finhay-skills-hub",
       "source": "./",
-      "description": "2 skills — market data (stocks, funds, gold, silver, crypto, macro, charts) and trading account data (balances, portfolio, orders, PnL)",
-      "version": "1.0.0",
+      "description": "3 skills — market data (stocks, funds, gold, silver, crypto, macro, charts), trading account data (balances, portfolio, orders, PnL), and order execution (place/modify/cancel stock orders, 2FA-gated)",
+      "version": "2.0.0",
       "author": {
         "name": "Finhay Securities"
       },
@@ -37,7 +37,8 @@
         "gold",
         "fund",
         "macro",
-        "portfolio"
+        "portfolio",
+        "order-execution"
       ],
       "strict": false
     }

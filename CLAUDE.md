@@ -4,8 +4,8 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 
 ## Architecture
 
-- **skills/** — 2 skills (each has `SKILL.md` + endpoint references)
-- **finhay.sh** / **finhay.ps1** — Unified CLI for Auth, Doctor, Infer, and Requests
+- **skills/** — 3 skills (each has `SKILL.md` + endpoint references)
+- **finhay.sh** / **finhay.ps1** — Unified CLI for Auth, Doctor, Infer, Requests, and 2FA session management
 - **.claude-plugin/** — Plugin metadata
 
 ## Skills
@@ -13,7 +13,8 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | finhay-market | Stock prices, funds, gold, crypto, macro indicators, charts | Prices, rates, market data |
-| finhay-portfolio | User profile, balance, portfolio, orders, PnL, user rights, market session, **order execution (place/modify/cancel)** | Profile, trading account, holdings, order history, **placing/modifying/cancelling orders** |
+| finhay-portfolio | Read-only: user profile, balances, holdings, order history, PnL, corporate-action rights | Net worth, purchasing power, trading performance, dividend tracking |
+| finhay-trading | **Write**: place / modify / cancel stock orders. 2FA-gated, 6-step safety protocol | Order execution only — buy, sell, cancel, modify |
 
 ## Prerequisites
 
@@ -51,8 +52,9 @@ When a new API endpoint is added to the backend (e.g. `vnsc-datafeed-service`), 
 3. **Update** `skills/<skill>/SKILL.md`
    - Add a row to the `## Endpoints` table with a one-line description and param summary
 
-For **write operations** (POST/PUT/DELETE), additionally:
+For **write operations** (POST/PUT/DELETE) — currently only in `finhay-trading`:
 - Document the body schema in the endpoint detail file's `### Components` section.
 - The signing payload for write requests includes a body hash: `{TIMESTAMP}\n{METHOD}\n{PATH}\n{SHA256(body).hex()}`, plus an `X-FH-BODYHASH` header. `./finhay.sh request` handles this when the BODY argument is non-empty.
+- All write endpoints additionally require a daily 2FA session (`X-FH-2FA-TOKEN` header) — see `skills/finhay-trading/SKILL.md` → 2FA Session.
 - For skills that include write operations, also maintain `references/safety.md` (user confirmation protocol) and `references/error-codes.md` (mapping `result[].code` to user-facing messages).
 

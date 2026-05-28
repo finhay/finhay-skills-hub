@@ -84,7 +84,7 @@ Retrieve order history for a sub-account within a date range.
 
 ### Config Required
 
-- `{subAccountId}` — inferred via `infer-sub-account.sh`
+- `{subAccountId}` — populated by `./finhay.sh infer` (env var `SUB_ACCOUNT_NORMAL` or `SUB_ACCOUNT_MARGIN`)
 
 ### Components
 

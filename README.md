@@ -10,7 +10,8 @@ Integrate real-time financial data from [Finhay Securities](https://fhsc.com.vn/
 | Skill | Capabilities | When to use? |
 |-------|--------------|--------------|
 | `finhay-market` | Stock prices, gold, crypto, macro indicators, and technical charts. | When asking about markets, prices, or financial news. |
-| `finhay-portfolio` | Asset management, balances, portfolios, order history, and P&L. | When checking personal accounts, NAV, or investment performance. |
+| `finhay-portfolio` | Asset management, balances, holdings, order history, P&L, corporate-action rights. **Read-only**. | When checking personal accounts, NAV, or investment performance. |
+| `finhay-trading` | Place, modify, and cancel stock orders. 2FA-gated, 6-step safety protocol. **Real money**. | When the user explicitly wants to execute an order (buy, sell, cancel, modify). |
 
 ---
 
@@ -64,8 +65,10 @@ If you are using **Claude Code**, **Cursor**, or another AI agent with terminal 
 |---------|-------------|
 | `auth` | Configure API credentials interactively |
 | `doctor` | Verify system dependencies and setup status |
+| `deps` | Check and install required system tools |
 | `infer` | Resolve `USER_ID` and trading sub-account IDs |
 | `request` | Execute signed API requests |
+| `2fa` | Manage the daily OTP session for order execution (`request`, `verify`, `status`, `revoke`) |
 | `sync` | Update local skill definitions from source |
 
 ---
@@ -82,6 +85,10 @@ Once installed, you can ask Claude questions like:
   - "What is my total net worth right now?"
   - "Am I currently in profit or loss on my stock holdings?"
   - "List all the stock buy orders I made this month."
+- **Trading (Order Execution)**:
+  - "Place a BUY order for 100 HPG at 25,500 VND."
+  - "Cancel my pending order for VNM."
+  - "Modify order ORD20260101 to 200 shares at 26,000 VND."
 
 ---
 

@@ -54,7 +54,7 @@ Retrieve the intraday order book for a sub-account.
 
 ### Config Required
 
-- `{subAccountId}` — inferred via `infer-sub-account.sh`
+- `{subAccountId}` — populated by `./finhay.sh infer` (env var `SUB_ACCOUNT_NORMAL` or `SUB_ACCOUNT_MARGIN`)
 
 ### Components
 
