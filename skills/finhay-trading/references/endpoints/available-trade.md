@@ -1,6 +1,6 @@
 # Available Trade (buying / selling power)
 
-## `GET /v2/accounts/{subAccountId}/available-trade`
+## `GET /trading/v2/accounts/{subAccountId}/available-trade`
 
 Check how many **shares** of a symbol the account can buy (or sell) before placing an order. Replaces the deprecated `trade-info` endpoint — note the semantics changed: `pp0` is now a **share count**, not a VND amount.
 
@@ -18,7 +18,7 @@ Check how many **shares** of a symbol the account can buy (or sell) before placi
 ### OpenAPI Spec
 
 ```yaml
-/v2/accounts/{subAccountId}/available-trade:
+/trading/v2/accounts/{subAccountId}/available-trade:
   get:
     summary: Get available buying/selling quantity (in shares) for a symbol
     operationId: getAvailableTrade
@@ -148,12 +148,12 @@ export AGENT_NAME=claude-code
 
 # Max shares of HPG the account can BUY at a 27,000 VND limit price
 ./finhay.sh request GET \
-  "/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" \
+  "/trading/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" \
   "orderSide=BUY&symbol=HPG&quotePrice=27000"
 
 # Max shares of HPG the account can SELL (0 = evaluate at market price)
 ./finhay.sh request GET \
-  "/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" \
+  "/trading/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" \
   "orderSide=SELL&symbol=HPG&quotePrice=0"
 ```
 

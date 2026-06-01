@@ -42,7 +42,7 @@ All three write endpoints additionally require `X-FH-2FA-TOKEN`, a daily JWT ses
 
 | # | Method | Path | Params | Res key | Detail |
 |---|--------|------|--------|---------|--------|
-| 1 | GET | `/v2/accounts/{subAccountId}/available-trade` | `orderSide`, `symbol`, `quotePrice` | `result` | [detail](./endpoints/available-trade.md) |
+| 1 | GET | `/trading/v2/accounts/{subAccountId}/available-trade` | `orderSide`, `symbol`, `quotePrice` | `result` | [detail](./endpoints/available-trade.md) |
 
 ## Order Book (current-day)
 
