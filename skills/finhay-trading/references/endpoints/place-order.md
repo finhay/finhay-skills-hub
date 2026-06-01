@@ -54,8 +54,10 @@ Place a new stock order on the exchange.
 
 ### Config Required
 
-- `{subAccountId}` — use `$SUB_ACCOUNT_NORMAL` or `$SUB_ACCOUNT_MARGIN` from `.env`
-- `sub_account` in body — use `$SUB_ACCOUNT_EXT_NORMAL` or `$SUB_ACCOUNT_EXT_MARGIN` from `.env` (written by `./finhay.sh infer`)
+- `{subAccountId}` — use `$SUB_ACCOUNT_ORDER` from `.env` (populated by `./finhay.sh infer` from the user's sub-account whose `sub_account_ext` ends in `.4`). **Only this account is accepted.**
+- `sub_account` in body — use `$SUB_ACCOUNT_EXT_ORDER` from `.env` (the `.4` extended ID).
+
+> If either env var is empty after `infer`, the user does not have an order-execution-capable account — abort with the error message in SKILL.md → "Sub-account Selection → Precheck". Do **not** substitute `SUB_ACCOUNT_NORMAL` / `SUB_ACCOUNT_MARGIN`.
 
 ### Components
 
@@ -68,8 +70,8 @@ components:
       properties:
         sub_account:
           type: string
-          description: Sub-account ID
-          example: "120C000008.1"
+          description: Extended sub-account ID (must end in `.4` — the order-execution account)
+          example: "120C000008.4"
         side:
           type: string
           enum: [BUY, SELL]
@@ -169,9 +171,9 @@ source ~/.finhay/credentials/.env
 export AGENT_NAME=claude-code
 
 ./finhay.sh request POST \
-  "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders" \
+  "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders" \
   '' \
-  '{"sub_account":"'"$SUB_ACCOUNT_EXT_NORMAL"'","side":"BUY","symbol":"HPG","quantity":100,"type":"LIMIT","limit_price":25500,"market_price":null,"stock_type":"STOCK"}'
+  '{"sub_account":"'"$SUB_ACCOUNT_EXT_ORDER"'","side":"BUY","symbol":"HPG","quantity":100,"type":"LIMIT","limit_price":25500,"market_price":null,"stock_type":"STOCK"}'
 ```
 
 > The third argument `''` is the (empty) query string — `./finhay.sh request` expects `METHOD PATH QUERY BODY` in that order.

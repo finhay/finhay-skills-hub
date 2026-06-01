@@ -60,9 +60,11 @@ Cancel an existing order. Note: this is a DELETE request **with a body**.
 
 ### Config Required
 
-- `{subAccountId}` — use `$SUB_ACCOUNT_NORMAL` or `$SUB_ACCOUNT_MARGIN` from `.env`
-- `sub_account` in body — use `$SUB_ACCOUNT_EXT_NORMAL` or `$SUB_ACCOUNT_EXT_MARGIN` from `.env`
-- `{orderId}` — must be obtained from order-book query first
+- `{subAccountId}` — use `$SUB_ACCOUNT_ORDER` from `.env`. **Only the `.4` order account is accepted.**
+- `sub_account` in body — use `$SUB_ACCOUNT_EXT_ORDER` from `.env`.
+- `{orderId}` — must be obtained from order-book query first.
+
+> If `SUB_ACCOUNT_ORDER` / `SUB_ACCOUNT_EXT_ORDER` are empty after `./finhay.sh infer`, abort per SKILL.md → "Sub-account Selection → Precheck". Do **not** substitute NORMAL / MARGIN.
 
 ### Components
 
@@ -75,8 +77,8 @@ components:
       properties:
         sub_account:
           type: string
-          description: Extended sub-account ID (use SUB_ACCOUNT_EXT_NORMAL or SUB_ACCOUNT_EXT_MARGIN from .env)
-          example: "120C000008.1"
+          description: Extended sub-account ID (use SUB_ACCOUNT_EXT_ORDER — must end in `.4`)
+          example: "120C000008.4"
 ```
 
 ### Example
@@ -86,9 +88,9 @@ source ~/.finhay/credentials/.env
 export AGENT_NAME=claude-code
 
 ./finhay.sh request DELETE \
-  "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders/ORDER_ID" \
+  "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders/ORDER_ID" \
   '' \
-  '{"sub_account":"'"$SUB_ACCOUNT_EXT_NORMAL"'"}'
+  '{"sub_account":"'"$SUB_ACCOUNT_EXT_ORDER"'"}'
 ```
 
 ### Notes

@@ -11,27 +11,36 @@ metadata:
 
 Stock order execution via the Finhay Securities Open API. **Real money operations** — every action is irreversible once matched on the exchange.
 
-> **MANDATORY**: Ensure credentials are set (via environment variables `FINHAY_API_KEY`/`FINHAY_API_SECRET` or via `./finhay.sh auth`). Run `./finhay.sh doctor` to verify. If IDs are missing, run `./finhay.sh infer`.
+> **MANDATORY — credentials**: Ensure credentials are set (via environment variables `FINHAY_API_KEY`/`FINHAY_API_SECRET` or via `./finhay.sh auth`). Run `./finhay.sh doctor` to verify. If IDs are missing, run `./finhay.sh infer`.
+
+> **MANDATORY — order sub-account**: Order execution **only** uses the sub-account whose `subAccountExt` ends in `.4` (a dedicated account provisioned by Finhay for Open API order routing). After `./finhay.sh infer`, the env vars `SUB_ACCOUNT_ORDER` and `SUB_ACCOUNT_EXT_ORDER` are populated **only when** such an account exists in the user's account list. If either is empty, the user does **not** have an order-execution-capable account — stop immediately and report:
+>
+> > ❌ **Tài khoản đặt lệnh không tồn tại.** Bạn chưa được cấp sub-account hỗ trợ đặt lệnh (`subAccountExt` kết thúc bằng `.4`). Vui lòng liên hệ Finhay Securities để đăng ký tài khoản đặt lệnh trước khi sử dụng tính năng đặt/sửa/huỷ lệnh.
+>
+> Do **not** fall back to `$SUB_ACCOUNT_NORMAL` / `$SUB_ACCOUNT_MARGIN` — orders sent on those accounts will be rejected.
 
 > For portfolio queries (balance, holdings, P&L, order history), use the **`finhay-portfolio`** skill. This skill is for **execution only**.
 
 ## Usage Examples
 
 ```bash
-# Pre-execution check before placing an order
-./finhay.sh request GET "/trading/sub-accounts/$SUB_ACCOUNT_NORMAL/trade-info" "symbol=HPG&side=BUY&quote_price=27000"
+# Verify the order sub-account exists before any action (fail fast)
+[ -z "$SUB_ACCOUNT_ORDER" ] && { echo "❌ Tài khoản đặt lệnh không tồn tại (subAccountExt phải kết thúc bằng .4). Liên hệ Finhay Securities để đăng ký." >&2; exit 1; }
+
+# Pre-execution check before placing an order — pp0 = max shares you can buy/sell (already in shares)
+./finhay.sh request GET "/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" "orderSide=BUY&symbol=HPG&quotePrice=27000"
 
 # Place a limit BUY order (see Order Execution section for the 6-step safety protocol)
-./finhay.sh request POST "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders" '' \
-  '{"sub_account":"'"$SUB_ACCOUNT_EXT_NORMAL"'","side":"BUY","symbol":"HPG","quantity":100,"type":"LIMIT","limit_price":25500,"market_price":null,"stock_type":"STOCK"}'
+./finhay.sh request POST "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders" '' \
+  '{"sub_account":"'"$SUB_ACCOUNT_EXT_ORDER"'","side":"BUY","symbol":"HPG","quantity":100,"type":"LIMIT","limit_price":25500,"market_price":null,"stock_type":"STOCK"}'
 
 # Modify an existing order
-./finhay.sh request PUT "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders/ORDER_ID" '' \
+./finhay.sh request PUT "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders/ORDER_ID" '' \
   '{"quantity":200,"price":26000}'
 
 # Cancel an existing order (DELETE with body)
-./finhay.sh request DELETE "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders/ORDER_ID" '' \
-  '{"sub_account":"'"$SUB_ACCOUNT_EXT_NORMAL"'"}'
+./finhay.sh request DELETE "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders/ORDER_ID" '' \
+  '{"sub_account":"'"$SUB_ACCOUNT_EXT_ORDER"'"}'
 ```
 
 > The third argument is always the query string (`''` when none). The fourth is the JSON body. Don't swap them.
@@ -53,7 +62,7 @@ Stock order execution via the Finhay Securities Open API. **Real money operation
 
 ```bash
 export AGENT_NAME=claude-code
-./finhay.sh request POST "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders" '' '...'
+./finhay.sh request POST "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders" '' '...'
 ```
 
 Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
@@ -62,7 +71,7 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 
 | Endpoint | Description | Params |
 |----------|-------------|--------|
-| `/trading/sub-accounts/{subAccountId}/trade-info` | **Pre-execution Check**: Buying power (BUY) or available quantity (SELL) before placing an order. | `symbol`, `side`, `quote_price` |
+| `/v2/accounts/{subAccountId}/available-trade` | **Pre-execution Check**: Max buyable (BUY) / sellable (SELL) shares of a symbol. `pp0` = max shares (already in shares — compare directly to quantity). | `orderSide`, `symbol`, `quotePrice` |
 | `/trading/v1/accounts/{subAccountId}/order-book` | **Order Book**: List of current day's active orders. Used for the duplicate guard and modify/cancel preflight. | `{subAccountId}` |
 | `/trading/v1/accounts/{subAccountId}/order-book/{orderId}` | **Order Detail**: Granular status for a specific order. Used to verify modifiable/cancellable status. | `{subAccountId}`, `{orderId}` |
 | `/trading/market/session` | **Market Session**: Current exchange status (Open/Closed) and available order types for the session. | `exchange` (e.g. HOSE) |
@@ -72,10 +81,30 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 
 ## Sub-account Selection
 
-- **NORMAL** → path uses `$SUB_ACCOUNT_NORMAL`, body uses `$SUB_ACCOUNT_EXT_NORMAL`
-- **MARGIN** → path uses `$SUB_ACCOUNT_MARGIN`, body uses `$SUB_ACCOUNT_EXT_MARGIN`
+Order execution **only** uses the sub-account whose `subAccountExt` ends in `.4`. This is a dedicated account type provisioned by Finhay for Open API order routing — other sub-accounts (NORMAL/MARGIN with `.1`/`.2`/etc) are not accepted by the gateway and orders sent on them will be rejected.
 
-> Write endpoints need **both**: the path takes the short sub-account ID, the body's `sub_account` field takes the extended ID. Both are populated by `./finhay.sh infer`.
+- **Order account** → path uses `$SUB_ACCOUNT_ORDER`, body's `sub_account` field uses `$SUB_ACCOUNT_EXT_ORDER`
+
+Both env vars are populated automatically by `./finhay.sh infer` — but **only when** the user has at least one sub-account whose `sub_account_ext` ends in `.4` in their account list. If not, both vars stay empty and order execution is blocked.
+
+Do **not** ask the user to choose between Normal/Margin/etc — the trading skill does not offer that choice. Orders go through the `.4` account exclusively.
+
+### Precheck — verify the order account exists
+
+Before starting the 6-step Safety Protocol (i.e. before Step 1 — Gather parameters), confirm both env vars:
+
+```bash
+if [ -z "$SUB_ACCOUNT_ORDER" ] || [ -z "$SUB_ACCOUNT_EXT_ORDER" ]; then
+  echo "❌ Tài khoản đặt lệnh không tồn tại. Bạn chưa được cấp sub-account hỗ trợ đặt lệnh qua OpenAPI (subAccountExt phải kết thúc bằng .4). Vui lòng liên hệ Finhay Securities để đăng ký." >&2
+  exit 1
+fi
+```
+
+If the precheck fails:
+1. Report the error to the user in Vietnamese as shown above.
+2. **Do not** proceed to gather parameters, do not run available-trade, do not run order-book.
+3. Do **not** suggest using `$SUB_ACCOUNT_NORMAL` / `$SUB_ACCOUNT_MARGIN` as a workaround — they will be rejected by the Open API gateway.
+4. Suggest the user contact Finhay Securities to provision the `.4` account, then re-run `./finhay.sh infer` once provisioned.
 
 ---
 
@@ -129,6 +158,8 @@ See [references/safety.md](./references/safety.md) for confirmation dialog templ
 
 **Follow ALL 6 steps for every order action. Never skip a step.**
 
+> **Before Step 1**: Run the [order-account precheck](#precheck--verify-the-order-account-exists). If `$SUB_ACCOUNT_ORDER` is empty, abort with the error message above — do **not** proceed to any step below.
+
 #### Step 1 — Gather parameters
 
 Ask the user explicitly for every required field. **Never assume or default** side, symbol, quantity, or price.
@@ -143,7 +174,7 @@ Ask the user explicitly for every required field. **Never assume or default** si
 
 Before calling the write API, verify via read endpoints:
 
-- **Place — funds/shares**: `GET /trading/sub-accounts/{subAccountId}/trade-info?symbol={symbol}&side={BUY|SELL}&quote_price={price}` — for BUY: check `pp0` (buying power) ≥ `quantity × quote_price`. For SELL: check `available_quantity` ≥ `quantity`.
+- **Place — funds/shares**: `GET /v2/accounts/{subAccountId}/available-trade?orderSide={BUY|SELL}&symbol={symbol}&quotePrice={price}` — `result.pp0` is the **max number of shares** of `{symbol}` the account can trade (already in shares). Check `pp0 >= quantity` for **both** BUY and SELL. Do **not** multiply by price. Pass `quotePrice=0` to evaluate at the current market price.
 - **Place — market session**: `GET /trading/market/session?exchange={exchange}` — verify the chosen order type is valid for the **current** session before submitting, to avoid an avoidable exchange rejection. Read `exchange_session` and `available_order_types`:
     - **MARKET orders** (`type=MARKET`, `market_price` ∈ `ATO`/`ATC`/`MP`/`MTL`/…): the chosen type **must** be in `available_order_types`, else the order is rejected (`-100113` / `INVALID_ORDER_TYPE_FOR_THIS_SESSION`). `ATO` is `OPEN`-only; `ATC` is `PRE_CLOSED`-only; `MP`/`MTL` only during continuous matching.
     - **LIMIT (LO) orders**: accepted in most live sessions. If `exchange_session` is `CLOSED`, the order will be rejected (`-300025`) — warn the user and require explicit confirmation before submitting.
@@ -165,7 +196,7 @@ Present a confirmation block to the user **before** executing (full templates in
 ║  Price:     25,500 VND               ║
 ║  Est. cost: 2,550,000 VND            ║
 ║  Type:      LIMIT                    ║
-║  Account:   0881234567 (NORMAL)      ║
+║  Account:   120C000008.4 (order)     ║
 ╚══════════════════════════════════════╝
 Type "confirm" to execute or "cancel" to abort.
 ```
@@ -245,8 +276,8 @@ The status table below is a **secondary** cross-check (and for explaining *why* 
 
 - **Privacy**: Mask API keys and sensitive credentials in all output.
 - **Credentials**: If `FINHAY_API_KEY` or `FINHAY_API_SECRET` are missing, stop and ask the user to provide them or run `./finhay.sh auth`.
-- **Sub-account IDs**: Run `./finhay.sh infer` once to populate `USER_ID`, `SUB_ACCOUNT_NORMAL`, `SUB_ACCOUNT_EXT_NORMAL`, `SUB_ACCOUNT_MARGIN`, `SUB_ACCOUNT_EXT_MARGIN`.
-- **Sub-account selection**: Always confirm the specific account (Normal/Margin) with the user before executing orders.
+- **Sub-account IDs**: Run `./finhay.sh infer` once to populate `USER_ID` and `SUB_ACCOUNT_ORDER` / `SUB_ACCOUNT_EXT_ORDER`. The user must have at least one sub-account whose `sub_account_ext` ends in `.4` — if not, these vars stay empty and order execution is blocked (see Precheck above).
+- **Sub-account selection**: This skill **only** uses the `.4` account exposed via `$SUB_ACCOUNT_ORDER`. Do not ask the user to choose between Normal/Margin/etc — orders must go through the `.4` account exclusively.
 - **Write operations**: Require both (a) a valid daily 2FA session (see "2FA Session" above) and (b) explicit user `confirm` (or `confirm-duplicate`) via the 6-step safety protocol. Never batch multiple orders — complete the full cycle per order.
 - **Price encoding**: Prices are in VND, no multiplier (e.g. 25,500 VND → `25500`).
 - **Channel**: Default to `ONLINE` unless the user specifies otherwise.

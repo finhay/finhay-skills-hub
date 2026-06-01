@@ -59,7 +59,7 @@ Retrieve detail for a specific order from the order book.
 
 ### Config Required
 
-- `{subAccountId}` — populated by `./finhay.sh infer` (env var `SUB_ACCOUNT_NORMAL` or `SUB_ACCOUNT_MARGIN`)
+- `{subAccountId}` — use `$SUB_ACCOUNT_ORDER` (populated by `./finhay.sh infer` from the user's `.4` sub-account). Order IDs returned by place/modify/cancel are bound to this account.
 
 ### Components
 

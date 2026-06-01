@@ -344,6 +344,13 @@ CMD_INFER() {
         echo "SUB_ACCOUNT_EXT_${UPPER_TYPE}=${EXT}" >> "$TMP"
         echo "export SUB_ACCOUNT_${UPPER_TYPE}=\"$ID\""
         echo "export SUB_ACCOUNT_EXT_${UPPER_TYPE}=\"$EXT\""
+        # Sub-account dành riêng cho đặt lệnh — discriminator: subAccountExt kết thúc bằng ".4"
+        if [[ "$EXT" == *.4 ]] && ! grep -q "^SUB_ACCOUNT_ORDER=" "$TMP" 2>/dev/null; then
+            echo "SUB_ACCOUNT_ORDER=${ID}" >> "$TMP"
+            echo "SUB_ACCOUNT_EXT_ORDER=${EXT}" >> "$TMP"
+            echo "export SUB_ACCOUNT_ORDER=\"$ID\""
+            echo "export SUB_ACCOUNT_EXT_ORDER=\"$EXT\""
+        fi
     done
     cat "$TMP" > "$CREDS_FILE"
     rm -f "$TMP"

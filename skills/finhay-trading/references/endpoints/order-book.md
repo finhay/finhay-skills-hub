@@ -54,7 +54,7 @@ Retrieve the intraday order book for a sub-account.
 
 ### Config Required
 
-- `{subAccountId}` — populated by `./finhay.sh infer` (env var `SUB_ACCOUNT_NORMAL` or `SUB_ACCOUNT_MARGIN`)
+- `{subAccountId}` — use `$SUB_ACCOUNT_ORDER` (populated by `./finhay.sh infer` from the user's `.4` sub-account). For trading workflows (duplicate guard, modify/cancel preflight), only the order-execution account is relevant.
 
 ### Components
 

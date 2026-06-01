@@ -5,15 +5,18 @@ Signing: use `./finhay.sh request` (or `.\finhay.ps1 request`).
 ## Config Envs
 
 - `USER_ID` — written by `./finhay.sh infer`
-- `SUB_ACCOUNT_NORMAL`, `SUB_ACCOUNT_MARGIN` — written by `./finhay.sh infer` (used in **path**)
-- `SUB_ACCOUNT_EXT_NORMAL`, `SUB_ACCOUNT_EXT_MARGIN` — written by `./finhay.sh infer` (used in **body**)
+- `SUB_ACCOUNT_ORDER` — written by `./finhay.sh infer` (used in **path**) — **required**. Auto-populated from the user's sub-account whose `sub_account_ext` ends in `.4`.
+- `SUB_ACCOUNT_EXT_ORDER` — written by `./finhay.sh infer` (used in **body** of write requests) — **required**. The `.4` extended ID.
+
+> Order execution **only** accepts the sub-account whose `subAccountExt` ends in `.4`. If `SUB_ACCOUNT_ORDER` is empty after `infer`, the user does not have an order-execution-capable account — see SKILL.md → "Sub-account Selection → Precheck" for the abort flow. Do **not** substitute `SUB_ACCOUNT_NORMAL` / `SUB_ACCOUNT_MARGIN`; the gateway will reject the order.
 
 ## Path Versions
 
 Versions are fixed per endpoint — do not change them:
 - `v1` → order book (list + detail)
+- `v2` → available-trade (buying/selling power)
 - `oa` (no version number) → order execution (place / modify / cancel)
-- (no prefix) → trade-info, market-session
+- (no prefix) → market-session
 
 ## Signing for Write Operations
 
@@ -39,7 +42,7 @@ All three write endpoints additionally require `X-FH-2FA-TOKEN`, a daily JWT ses
 
 | # | Method | Path | Params | Res key | Detail |
 |---|--------|------|--------|---------|--------|
-| 1 | GET | `/trading/sub-accounts/{subAccountId}/trade-info` | `symbol`, `side`, `quote_price` | `result` | [detail](./endpoints/trade-info.md) |
+| 1 | GET | `/v2/accounts/{subAccountId}/available-trade` | `orderSide`, `symbol`, `quotePrice` | `result` | [detail](./endpoints/available-trade.md) |
 
 ## Order Book (current-day)
 

@@ -60,7 +60,7 @@ Modify the quantity and/or price of an existing order.
 
 ### Config Required
 
-- `{subAccountId}` — from `.env`
+- `{subAccountId}` — use `$SUB_ACCOUNT_ORDER` from `.env`. **Only the `.4` order account is accepted.** If empty after `./finhay.sh infer`, abort per SKILL.md → "Sub-account Selection → Precheck".
 - `{orderId}` — must be obtained from order-book query first
 
 ### Components
@@ -89,7 +89,7 @@ source ~/.finhay/credentials/.env
 export AGENT_NAME=claude-code
 
 ./finhay.sh request PUT \
-  "/trading/oa/sub-accounts/$SUB_ACCOUNT_NORMAL/orders/ORDER_ID" \
+  "/trading/oa/sub-accounts/$SUB_ACCOUNT_ORDER/orders/ORDER_ID" \
   '' \
   '{"quantity":200,"price":26000}'
 ```

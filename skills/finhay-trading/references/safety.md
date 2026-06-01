@@ -19,7 +19,7 @@ This document expands on the Safety Protocol in SKILL.md. Every order operation 
 ║  Price:     25,500 VND               ║
 ║  Est. cost: 2,550,000 VND            ║
 ║  Type:      LIMIT                    ║
-║  Account:   0881234567 (NORMAL)      ║
+║  Account:   120C000008.4 (order)     ║
 ╚══════════════════════════════════════╝
 Type "confirm" to execute or "cancel" to abort.
 ```
@@ -34,7 +34,7 @@ Type "confirm" to execute or "cancel" to abort.
 ║  Symbol:    HPG (BUY)                ║
 ║  Current:   100 shares @ 25,500      ║
 ║  New:       200 shares @ 26,000      ║
-║  Account:   0881234567 (NORMAL)      ║
+║  Account:   120C000008.4 (order)     ║
 ╚══════════════════════════════════════╝
 Type "confirm" to execute or "cancel" to abort.
 ```
@@ -49,7 +49,7 @@ Type "confirm" to execute or "cancel" to abort.
 ║  Symbol:    HPG (BUY)                ║
 ║  Quantity:  100 shares @ 25,500      ║
 ║  Status:    SENT                     ║
-║  Account:   0881234567 (NORMAL)      ║
+║  Account:   120C000008.4 (order)     ║
 ╚══════════════════════════════════════╝
 Type "confirm" to execute or "cancel" to abort.
 ```

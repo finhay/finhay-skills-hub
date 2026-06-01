@@ -325,6 +325,7 @@ function Cmd-Infer {
     Write-Host "`$env:USER_ID=`"$UserId`""
     
     $Accounts = if ($SbaJson.result) { $SbaJson.result } else { $SbaJson.data }
+    $OrderCaptured = $false
     foreach ($acc in $Accounts) {
         if (-not $acc.type) { continue }
         $Type = $acc.type.ToString().ToUpper()
@@ -334,6 +335,14 @@ function Cmd-Infer {
         $NewContent += "SUB_ACCOUNT_EXT_$($Type)=$Ext"
         Write-Host "`$env:SUB_ACCOUNT_$($Type)=`"$Id`""
         Write-Host "`$env:SUB_ACCOUNT_EXT_$($Type)=`"$Ext`""
+        # Sub-account dành riêng cho đặt lệnh — discriminator: subAccountExt kết thúc bằng ".4"
+        if ((-not $OrderCaptured) -and ($Ext -like '*.4')) {
+            $NewContent += "SUB_ACCOUNT_ORDER=$Id"
+            $NewContent += "SUB_ACCOUNT_EXT_ORDER=$Ext"
+            Write-Host "`$env:SUB_ACCOUNT_ORDER=`"$Id`""
+            Write-Host "`$env:SUB_ACCOUNT_EXT_ORDER=`"$Ext`""
+            $OrderCaptured = $true
+        }
     }
     Set-Content -Path $CredsFile -Value ($NewContent -join "`n")
     Write-Host "✅ Account IDs resolved and saved to $CredsFile"
