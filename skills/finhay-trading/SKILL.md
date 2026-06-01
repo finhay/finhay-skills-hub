@@ -27,7 +27,7 @@ Stock order execution via the Finhay Securities Open API. **Real money operation
 # Verify the order sub-account exists before any action (fail fast)
 [ -z "$SUB_ACCOUNT_ORDER" ] && { echo "❌ Tài khoản đặt lệnh không tồn tại (subAccountExt phải kết thúc bằng .4). Liên hệ Finhay Securities để đăng ký." >&2; exit 1; }
 
-# Pre-execution check before placing an order — pp0 = max shares you can buy/sell (already in shares)
+# Pre-execution check before placing an order — BUY checks pp0 (VND buying power), SELL checks trade (shares)
 ./finhay.sh request GET "/trading/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" "orderSide=BUY&symbol=HPG&quotePrice=27000"
 
 # Place a limit BUY order (see Order Execution section for the 6-step safety protocol)
@@ -71,7 +71,7 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 
 | Endpoint | Description | Params |
 |----------|-------------|--------|
-| `/trading/v2/accounts/{subAccountId}/available-trade` | **Pre-execution Check**: Max buyable (BUY) / sellable (SELL) shares of a symbol. `pp0` = max shares (already in shares — compare directly to quantity). | `orderSide`, `symbol`, `quotePrice` |
+| `/trading/v2/accounts/{subAccountId}/available-trade` | **Pre-execution Check**: BUY → `pp0` (buying power in VND); SELL → `trade` (shares available). | `orderSide`, `symbol`, `quotePrice` |
 | `/trading/v1/accounts/{subAccountId}/order-book` | **Order Book**: List of current day's active orders. Used for the duplicate guard and modify/cancel preflight. | `{subAccountId}` |
 | `/trading/v1/accounts/{subAccountId}/order-book/{orderId}` | **Order Detail**: Granular status for a specific order. Used to verify modifiable/cancellable status. | `{subAccountId}`, `{orderId}` |
 | `/trading/market/session` | **Market Session**: Current exchange status (Open/Closed) and available order types for the session. | `exchange` (e.g. HOSE) |
@@ -174,7 +174,7 @@ Ask the user explicitly for every required field. **Never assume or default** si
 
 Before calling the write API, verify via read endpoints:
 
-- **Place — funds/shares**: `GET /trading/v2/accounts/{subAccountId}/available-trade?orderSide={BUY|SELL}&symbol={symbol}&quotePrice={price}` — `result.pp0` is the **max number of shares** of `{symbol}` the account can trade (already in shares). Check `pp0 >= quantity` for **both** BUY and SELL. Do **not** multiply by price. Pass `quotePrice=0` to evaluate at the current market price.
+- **Place — funds/shares**: `GET /trading/v2/accounts/{subAccountId}/available-trade?orderSide={BUY|SELL}&symbol={symbol}&quotePrice={price}` — **BUY**: `result.pp0` is buying power in **VND** → check `pp0 >= quantity × price`. **SELL**: `result.trade` is the number of **shares** available → check `trade >= quantity`. Pass `quotePrice=0` to evaluate at the current market price.
 - **Place — market session**: `GET /trading/market/session?exchange={exchange}` — verify the chosen order type is valid for the **current** session before submitting, to avoid an avoidable exchange rejection. Read `exchange_session` and `available_order_types`:
     - **MARKET orders** (`type=MARKET`, `market_price` ∈ `ATO`/`ATC`/`MP`/`MTL`/…): the chosen type **must** be in `available_order_types`, else the order is rejected (`-100113` / `INVALID_ORDER_TYPE_FOR_THIS_SESSION`). `ATO` is `OPEN`-only; `ATC` is `PRE_CLOSED`-only; `MP`/`MTL` only during continuous matching.
     - **LIMIT (LO) orders**: accepted in most live sessions. If `exchange_session` is `CLOSED`, the order will be rejected (`-300025`) — warn the user and require explicit confirmation before submitting.

@@ -2,7 +2,7 @@
 
 ## `GET /trading/v2/accounts/{subAccountId}/available-trade`
 
-Check how many **shares** of a symbol the account can buy (or sell) before placing an order. Replaces the deprecated `trade-info` endpoint — note the semantics changed: `pp0` is now a **share count**, not a VND amount.
+Check whether the account can afford a BUY or has enough shares for a SELL before placing an order. Replaces the deprecated `trade-info` endpoint. **BUY** uses `pp0` (buying power in VND); **SELL** uses `trade` (number of shares available).
 
 ---
 
@@ -20,7 +20,7 @@ Check how many **shares** of a symbol the account can buy (or sell) before placi
 ```yaml
 /trading/v2/accounts/{subAccountId}/available-trade:
   get:
-    summary: Get available buying/selling quantity (in shares) for a symbol
+    summary: Get buying power (BUY) / sellable quantity (SELL) for a symbol
     operationId: getAvailableTrade
     tags:
       - Order Execution
@@ -97,9 +97,8 @@ components:
           type: integer
           format: int64
           description: >
-            Maximum number of SHARES of {symbol} the account can trade for the
-            given orderSide at quotePrice. Already expressed in shares — compare
-            it directly against the requested quantity (do NOT multiply by price).
+            Buying power in VND — the max amount available to BUY {symbol} at
+            quotePrice. Use for BUY: check pp0 >= quantity * quotePrice.
         ppse:
           type: integer
           format: int64
@@ -111,7 +110,9 @@ components:
         trade:
           type: integer
           format: int64
-          description: Tradeable amount
+          description: >
+            Number of shares of {symbol} available to SELL. Use for SELL:
+            check trade >= quantity.
         balance:
           type: integer
           format: int64
@@ -135,10 +136,10 @@ components:
 
 ### Usage for Pre-execution Check
 
-The key field is **`pp0`** — the maximum number of shares of `{symbol}` the account can trade. It is already in **shares**, so compare it directly against the requested quantity (do NOT multiply by price, unlike the old `trade-info`).
+The field to check **differs by side**:
 
-- **BUY**: check `result.pp0 >= quantity`. If `quantity > pp0`, warn the user about insufficient buying power.
-- **SELL**: check `result.pp0 >= quantity`. If `quantity > pp0`, warn the user about insufficient available shares.
+- **BUY** — `result.pp0` is buying power in **VND**. Check `pp0 >= quantity * quotePrice`. If not, warn the user about insufficient buying power.
+- **SELL** — `result.trade` is the number of **shares** available to sell. Check `trade >= quantity`. If not, warn the user about insufficient available shares.
 
 ### Example
 
@@ -146,12 +147,12 @@ The key field is **`pp0`** — the maximum number of shares of `{symbol}` the ac
 source ~/.finhay/credentials/.env
 export AGENT_NAME=claude-code
 
-# Max shares of HPG the account can BUY at a 27,000 VND limit price
+# Buying power (pp0, VND) for HPG at a 27,000 VND limit price
 ./finhay.sh request GET \
   "/trading/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" \
   "orderSide=BUY&symbol=HPG&quotePrice=27000"
 
-# Max shares of HPG the account can SELL (0 = evaluate at market price)
+# Sellable shares (trade) for HPG (0 = evaluate at market price)
 ./finhay.sh request GET \
   "/trading/v2/accounts/$SUB_ACCOUNT_ORDER/available-trade" \
   "orderSide=SELL&symbol=HPG&quotePrice=0"
@@ -161,7 +162,7 @@ export AGENT_NAME=claude-code
 
 - This is a GET endpoint — no body, no body-hash signing required.
 - **Sub-account**: Use `$SUB_ACCOUNT_ORDER` only — same constraint as the write endpoints (the precheck must return data for the account that will actually execute the order). Substituting `$SUB_ACCOUNT_NORMAL` / `$SUB_ACCOUNT_MARGIN` would return a different account's data and lead to incorrect Step 2 decisions.
-- **`pp0` is a SHARE count**, not VND. Never multiply by `quotePrice`. This is the key difference from the deprecated `trade-info` endpoint (where `pp0` was buying power in VND).
+- **Different field per side**: BUY checks `pp0` (VND buying power → `pp0 >= quantity * quotePrice`); SELL checks `trade` (share count → `trade >= quantity`). Don't mix them up.
 - `error_code` is a **string**; `"0"` means success. Any other value indicates an error — surface `message` / `popup_message` to the user.
 - Pass the intended LIMIT price as `quotePrice` for LIMIT orders; pass `0` to evaluate against the current market price.
 - Always call this before `place-order` to detect insufficient funds/shares early.
