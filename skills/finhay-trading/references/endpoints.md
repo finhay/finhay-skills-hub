@@ -31,7 +31,7 @@ Where `BODY_HASH = SHA256(request_body_json).hex()`. An additional header `X-FH-
 
 ## 2FA Header
 
-All three write endpoints additionally require `X-FH-2FA-TOKEN`, a daily JWT session token obtained via the OTP flow. The CLI attaches this header automatically when a valid local session exists; if missing or expired, the CLI catches the `403 OTP_SESSION_*` response, runs the interactive OTP flow, and retries. See `../SKILL.md` → 2FA Session for details.
+All three write endpoints additionally require `X-FH-2FA-TOKEN`, a daily JWT session token obtained via the OTP flow. The CLI attaches this header automatically when a valid local session exists. If it is missing or expired, the CLI catches the `403 OTP_SESSION_*` response and — **only in an interactive terminal** — runs the OTP flow and retries; in an agent / non-interactive context it prints the manual Step 5 commands and exits non-zero instead of burning an OTP. See `../SKILL.md` → 2FA Session for details.
 
 ---
 

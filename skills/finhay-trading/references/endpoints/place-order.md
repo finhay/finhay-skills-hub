@@ -184,4 +184,5 @@ export AGENT_NAME=claude-code
 - **stock_type**: Default `STOCK` for equities. Use `BOND` for bonds, `ETF` for ETFs, etc.
 - **Lot size**: HOSE/HNX round lots are 100 shares. Orders of 1-99 shares are odd lots (`ODD`) with limited order types (LO only).
 - **Order type by exchange** (post-KRX, May 2025): HOSE supports LO/MP/ATO/ATC/MTL. HNX supports LO/MTL/MOK/MAK/PLO/ATC. UPCOM and HCX support LO only. ORS auto-converts: HOSE MP→MTL, HNX MAK→FAK, HNX MOK→FOK.
+- **Check the session first for MARKET orders**: before sending `type=MARKET` (`ATO`/`ATC`/`MP`/…), call `GET /trading/market/session?exchange={exchange}` and confirm the type is in `available_order_types` — otherwise the exchange rejects it (`-100113`). See [safety.md → Market Session Pre-check](../safety.md#market-session-pre-check).
 - A successful response does not guarantee execution — the order enters the exchange queue. Check order-book for final status.

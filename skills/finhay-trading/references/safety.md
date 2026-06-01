@@ -59,17 +59,36 @@ Type "confirm" to execute or "cancel" to abort.
 Before placing a new order:
 
 1. Fetch current order book: `GET /trading/v1/accounts/{subAccountId}/order-book`
-2. Filter for orders with status in: `RECEIVED`, `SENT`, `WAITING_TO_SEND`, `SENDING`
-3. Check if any match **all four**: same `symbol` + same `order_side` + same `order_quantity` + same `limit_price`
+2. Filter for orders whose `status` is in: `RECEIVED`, `SENT`, `WAITING_TO_SEND`, `SENDING`
+3. Check if any match **all four**: same `symbol` + same `side` + same `qtty` + same `price`
 4. If match found → show duplicate warning, require `"confirm-duplicate"` instead of `"confirm"`
+
+> Match against the **order-book** field names (`side`, `qtty`, `price` from the `OrderBookEntry` schema), **not** the place-order request fields (`order_side`, `order_quantity`, `limit_price`). Same concepts, different keys — using the request names matches nothing and lets a duplicate through.
+
+## Market Session Pre-check
+
+Before submitting a **place** order, confirm the order type is valid for the current session — this catches the most common avoidable rejection (`-100113` / `INVALID_ORDER_TYPE_FOR_THIS_SESSION`, or `-300025` outside trading hours).
+
+1. Determine the symbol's exchange — `HOSE`, `HNX`, `UPCOM`, or `HCX` (ask the user if ambiguous; most large-cap tickers are HOSE).
+2. Fetch the session: `GET /trading/market/session?exchange={exchange}`.
+3. Check `exchange_session` and `available_order_types`:
+   - **MARKET types** (`ATO`, `ATC`, `MP`, `MTL`, `MAK`, `MOK`, `PLO`, …) must appear in `available_order_types`. `ATO` → `OPEN` only; `ATC` → `PRE_CLOSED` only; `PLO` → HNX `POST_SESSION` only.
+   - **LIMIT (LO)** is accepted in most live sessions; if `exchange_session` is `CLOSED`, warn that the order will be rejected.
+4. If the chosen type isn't available for the current session → warn the user and do **not** submit unless they explicitly confirm.
+
+The full session → order-type matrix is in [enums.md](./enums.md).
 
 ## Modifiable / Cancellable Statuses
 
-### Can modify
+**Authoritative gate: the server flags `allowamend` / `allowcancel`.** Every `OrderBookEntry` carries these string flags, set by the core. Treat them as the source of truth — modify only when `allowamend` affirmatively permits it, cancel only when `allowcancel` does (the truthy value is commonly `"Y"`/`"1"`/`true`; confirm from a live response).
+
+The status lists below are a **secondary** cross-check and for explaining the reason to the user. Do not rely on them alone — the exchange can gate an order independent of its display status.
+
+### Typically can modify
 
 `SENT`, `WAITING_TO_SEND`
 
-### Can cancel
+### Typically can cancel
 
 `SENT`, `WAITING_TO_SEND`, `SENDING`
 
@@ -77,7 +96,7 @@ Before placing a new order:
 
 `MATCHED`, `MATCHED_ALL`, `CANCELLED`, `COMPLETED`, `FAILED`, `REJECTED`, `EXPIRED`
 
-Always verify by checking the order detail endpoint before attempting modify/cancel.
+Always verify by checking the order detail endpoint — and its `allowamend`/`allowcancel` flags — before attempting modify/cancel.
 
 ## Recovery from Failures
 

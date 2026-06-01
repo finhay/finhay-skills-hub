@@ -49,7 +49,29 @@ function Clear-2FAToken {
     if (Test-Path $Session2faFile) { Remove-Item -Path $Session2faFile -Force -ErrorAction SilentlyContinue }
 }
 
+# True only when we can actually prompt a human for input.
+# In an agent / piped context input is redirected → returns $false.
+function Test-Interactive {
+    try {
+        if ([Console]::IsInputRedirected) { return $false }
+    } catch {
+        return $false
+    }
+    return [Environment]::UserInteractive
+}
+
 function Invoke-2FAInteractive {
+    # Fail safe before spending an OTP: if there is no TTY we cannot read the
+    # 6-digit code, so do NOT send a request (it would burn 1 of 5/day and then
+    # block on an unanswerable prompt). Tell the caller to run Step 5 manually.
+    if (-not (Test-Interactive)) {
+        Write-Host "🔐 Cần 2FA session nhưng môi trường không có TTY để nhập OTP tự động."
+        Write-Host "   KHÔNG tự gửi OTP (tránh phí hạn mức 5 lần/ngày). Hãy chạy preflight (Step 5):"
+        Write-Host "     1) .\finhay.ps1 2fa request                    # gửi OTP qua email"
+        Write-Host "     2) .\finhay.ps1 2fa verify <ticket_id> <otp>   # lưu session"
+        Write-Host "     3) chạy lại lệnh place/modify/cancel"
+        return $false
+    }
     $reqBody = "{`"channel`":`"EMAIL`"}"
     $reqResp = Request-Internal -Method "POST" -Endpoint "/auth/v1/openapi/2fa/request" -Body $reqBody
     if (-not $reqResp) { return $false }
@@ -355,7 +377,7 @@ function Cmd-2FA {
             if ($exp_epoch -and [long]$exp_epoch -gt $now) {
                 Write-Host ("✅ 2FA session đang hoạt động, hết hạn {0}" -f $exp_iso)
             } else {
-                Write-Host ("⚠ 2FA session đã hết hạn ({0}). Lần write tiếp theo sẽ tự kích hoạt OTP." -f $exp_iso)
+                Write-Host ("⚠ 2FA session đã hết hạn ({0}). Cần verify OTP lại (Step 5) trước khi đặt lệnh." -f $exp_iso)
             }
         }
         "revoke" {

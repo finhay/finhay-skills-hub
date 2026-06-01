@@ -97,7 +97,7 @@ export AGENT_NAME=claude-code
 ### Notes
 
 - **2FA required**: Modify is one of the three write-order actions gated by the daily 2FA session at the auth service. Every call must include a valid `X-FH-2FA-TOKEN` header — `./finhay.sh` attaches it automatically when a session exists. See [SKILL.md → 2FA Session](../../SKILL.md#2fa-session-one-otp-per-day) for the OTP flow.
-- **Pre-check required**: Before modifying, query the order detail (`GET /trading/v1/accounts/{subAccountId}/order-book/{orderId}`) and verify the order is in a modifiable status.
-- **Modifiable statuses**: Generally `SENT`, `WAITING_TO_SEND`. Orders that are `MATCHED`, `CANCELLED`, `COMPLETED`, `FAILED` cannot be modified.
+- **Pre-check required**: Before modifying, query the order detail (`GET /trading/v1/accounts/{subAccountId}/order-book/{orderId}`) and verify the server flag `allowamend` affirmatively permits modification.
+- **Authoritative gate**: Trust `allowamend` from the order-book entry, not the display status alone. The status list (`SENT`, `WAITING_TO_SEND` typically modifiable; `MATCHED`, `CANCELLED`, `COMPLETED`, `FAILED` not) is only a secondary cross-check.
 - **Partially matched orders**: If an order has been partially matched, only the unmatched portion can be modified. The `rejected_reason` will indicate this.
 - **Price encoding**: Same as place order — `price` = price in VND. No multiplication needed.

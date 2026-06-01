@@ -30,6 +30,18 @@ _INPUT_SRC() {
     fi
 }
 
+# True only when we can actually prompt a human for input (real TTY).
+# In an agent / piped context there is no TTY → returns non-zero.
+_INTERACTIVE() {
+    if [ -t 0 ]; then
+        return 0
+    elif [ -c /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 _LOAD_2FA_TOKEN() {
     [ -f "$SESSION_2FA_FILE" ] || return 0
     local token exp_epoch now_epoch
@@ -59,6 +71,18 @@ _CLEAR_2FA_TOKEN() {
 }
 
 _2FA_INTERACTIVE_FLOW() {
+    # Fail safe before spending an OTP: if there is no TTY we cannot read the
+    # 6-digit code, so do NOT send a request (it would burn 1 of 5/day and then
+    # block on an unanswerable prompt). Tell the caller to run Step 5 manually.
+    if ! _INTERACTIVE; then
+        echo "🔐 Cần 2FA session nhưng môi trường không có TTY để nhập OTP tự động." >&2
+        echo "   KHÔNG tự gửi OTP (tránh phí hạn mức 5 lần/ngày). Hãy chạy preflight (Step 5):" >&2
+        echo "     1) ./finhay.sh 2fa request                    # gửi OTP qua email" >&2
+        echo "     2) ./finhay.sh 2fa verify <ticket_id> <otp>   # lưu session" >&2
+        echo "     3) chạy lại lệnh place/modify/cancel" >&2
+        return 1
+    fi
+
     local input_src
     input_src=$(_INPUT_SRC)
 
@@ -356,7 +380,7 @@ CMD_2FA() {
             if [ -n "$exp_epoch" ] && [ "$exp_epoch" -gt "$now_epoch" ]; then
                 echo "✅ 2FA session đang hoạt động, hết hạn $exp_iso"
             else
-                echo "⚠ 2FA session đã hết hạn ($exp_iso). Lần write tiếp theo sẽ tự kích hoạt OTP."
+                echo "⚠ 2FA session đã hết hạn ($exp_iso). Cần verify OTP lại (Step 5) trước khi đặt lệnh."
             fi
             ;;
         revoke)

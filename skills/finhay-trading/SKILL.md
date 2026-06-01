@@ -85,7 +85,9 @@ Every **write** call to `/trading/oa/sub-accounts/.../orders` (POST place / PUT 
 
 **How the agent should drive this**: after the user has confirmed an order (Step 4 of the Safety Protocol), the agent calls `./finhay.sh 2fa status` to detect the session state, and only initiates the OTP flow if the session is missing or expired. Full step-by-step is in [Order Execution → Step 5 — 2FA Session preflight](#step-5--2fa-session-preflight).
 
-`./finhay.sh` (and the PowerShell equivalent) also keep a **reactive safety net**: if a write request still receives `403 OTP_SESSION_REQUIRED`/`EXPIRED`/`INVALID`/`REVOKED` (e.g. the local file is in sync but the server revoked the session), the skill catches the response, sends an OTP to the registered email, prompts for the 6-digit code, and retries the original write transparently. The proactive preflight in Step 5 should make this path rare in practice.
+`./finhay.sh` (and the PowerShell equivalent) also keep a **reactive safety net**: if a write request still receives `403 OTP_SESSION_REQUIRED`/`EXPIRED`/`INVALID`/`REVOKED` (e.g. the local file is in sync but the server revoked the session), the skill catches the response and recovers. The proactive preflight in Step 5 should make this path rare in practice.
+
+> **Interactive terminals only.** Auto-recovery prompts for the OTP through the terminal, so it only works when a real TTY is attached. In an **agent / non-interactive context there is no TTY** — the CLI deliberately does **not** auto-send an OTP (which would burn one of the 5 daily requests and then fail at an unanswerable prompt). Instead it prints the manual Step 5 commands and exits non-zero. **This is exactly why the agent must always run the proactive Step 5 preflight before any write** — never rely on the reactive net to mint a session.
 
 ### Manual control
 
@@ -105,8 +107,8 @@ Limits enforced by the auth service:
 
 | Code | When |
 |---|---|
-| `OTP_SESSION_REQUIRED` | First write of the day — skill auto-recovers |
-| `OTP_SESSION_EXPIRED` | Midnight rolled past while session cached — skill auto-recovers |
+| `OTP_SESSION_REQUIRED` | First write of the day — run Step 5 to mint a session |
+| `OTP_SESSION_EXPIRED` | Midnight rolled past while session cached — run Step 5 again |
 | `OTP_SESSION_REVOKED` | Someone called `2fa revoke` — re-verify |
 | `OTP_INVALID` | Wrong code; remaining attempts in `message` |
 | `OTP_LOCKED` | Ticket consumed all attempts; request a new one |
@@ -141,8 +143,12 @@ Ask the user explicitly for every required field. **Never assume or default** si
 
 Before calling the write API, verify via read endpoints:
 
-- **Place BUY/SELL**: `GET /trading/sub-accounts/{subAccountId}/trade-info?symbol={symbol}&side={BUY|SELL}&quote_price={price}` — for BUY: check `pp0` (buying power) ≥ `quantity × quote_price`. For SELL: check `available_quantity` ≥ `quantity`.
-- **Modify/Cancel**: `GET /trading/v1/accounts/{subAccountId}/order-book/{orderId}` — confirm the order exists and is in a modifiable / cancellable status.
+- **Place — funds/shares**: `GET /trading/sub-accounts/{subAccountId}/trade-info?symbol={symbol}&side={BUY|SELL}&quote_price={price}` — for BUY: check `pp0` (buying power) ≥ `quantity × quote_price`. For SELL: check `available_quantity` ≥ `quantity`.
+- **Place — market session**: `GET /trading/market/session?exchange={exchange}` — verify the chosen order type is valid for the **current** session before submitting, to avoid an avoidable exchange rejection. Read `exchange_session` and `available_order_types`:
+    - **MARKET orders** (`type=MARKET`, `market_price` ∈ `ATO`/`ATC`/`MP`/`MTL`/…): the chosen type **must** be in `available_order_types`, else the order is rejected (`-100113` / `INVALID_ORDER_TYPE_FOR_THIS_SESSION`). `ATO` is `OPEN`-only; `ATC` is `PRE_CLOSED`-only; `MP`/`MTL` only during continuous matching.
+    - **LIMIT (LO) orders**: accepted in most live sessions. If `exchange_session` is `CLOSED`, the order will be rejected (`-300025`) — warn the user and require explicit confirmation before submitting.
+    - Determine `{exchange}` (HOSE / HNX / UPCOM / HCX) from the symbol; ask the user if ambiguous (most large-cap tickers are HOSE). The "order types by session" tables in [enums.md](./references/enums.md) are the offline reference.
+- **Modify/Cancel**: `GET /trading/v1/accounts/{subAccountId}/order-book/{orderId}` — confirm the order exists and that the server flag (`allowamend` for modify, `allowcancel` for cancel) affirmatively permits the action. See [Modifiable / Cancellable status](#modifiable--cancellable-status).
 
 #### Step 3 — Confirmation display
 
@@ -217,12 +223,18 @@ If the API call fails or times out, **immediately** check the order book (GET) t
 
 ### Duplicate Guard
 
-Before placing a new order, fetch the current order book and filter for status in `RECEIVED`, `SENT`, `WAITING_TO_SEND`, `SENDING`. If any pending order matches **all four** of: same `symbol` + `order_side` + `order_quantity` + `limit_price`, warn the user and require `confirm-duplicate` instead of `confirm`.
+Before placing a new order, fetch the current order book and filter for `status` in `RECEIVED`, `SENT`, `WAITING_TO_SEND`, `SENDING`. If any pending order matches **all four** of: same `symbol` + `side` + `qtty` + `price`, warn the user and require `confirm-duplicate` instead of `confirm`.
+
+> Match against the **order-book** schema (`OrderBookEntry`) field names — `side`, `qtty`, `price` — **not** the place-order request fields (`order_side`, `order_quantity`, `limit_price`). They name the same concepts but the keys differ; using the request names finds nothing and the guard silently passes a duplicate.
 
 ### Modifiable / Cancellable status
 
-| Action | Allowed statuses |
-|--------|------------------|
+**Authoritative gate — trust the server flags.** Each `OrderBookEntry` carries `allowamend` and `allowcancel` (string flags set by the core). Use these as the source of truth: modify only when `allowamend` affirmatively permits it, cancel only when `allowcancel` does. They are strings — the truthy value is commonly `"Y"`/`"1"`/`true`; confirm from a live response.
+
+The status table below is a **secondary** cross-check (and for explaining *why* to the user). Never rely on it alone — the exchange can gate an order independent of its display status.
+
+| Action | Typically allowed statuses |
+|--------|----------------------------|
 | Modify | `SENT`, `WAITING_TO_SEND` |
 | Cancel | `SENT`, `WAITING_TO_SEND`, `SENDING` |
 | Neither | `MATCHED`, `MATCHED_ALL`, `CANCELLED`, `COMPLETED`, `FAILED`, `REJECTED`, `EXPIRED` |

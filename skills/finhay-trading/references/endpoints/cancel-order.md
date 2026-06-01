@@ -94,7 +94,7 @@ export AGENT_NAME=claude-code
 ### Notes
 
 - **2FA required**: Cancel is one of the three write-order actions gated by the daily 2FA session at the auth service. Every call must include a valid `X-FH-2FA-TOKEN` header — `./finhay.sh` attaches it automatically when a session exists. See [SKILL.md → 2FA Session](../../SKILL.md#2fa-session-one-otp-per-day) for the OTP flow.
-- **Pre-check required**: Before cancelling, query the order detail (`GET /trading/v1/accounts/{subAccountId}/order-book/{orderId}`) and verify the order is in a cancellable status.
-- **Cancellable statuses**: Generally `SENT`, `WAITING_TO_SEND`, `SENDING`. Orders that are `MATCHED`, `MATCHED_ALL`, `CANCELLED`, `COMPLETED`, `FAILED` cannot be cancelled.
+- **Pre-check required**: Before cancelling, query the order detail (`GET /trading/v1/accounts/{subAccountId}/order-book/{orderId}`) and verify the server flag `allowcancel` affirmatively permits cancellation.
+- **Authoritative gate**: Trust `allowcancel` from the order-book entry, not the display status alone. The status list (`SENT`, `WAITING_TO_SEND`, `SENDING` typically cancellable; `MATCHED`, `MATCHED_ALL`, `CANCELLED`, `COMPLETED`, `FAILED` not) is only a secondary cross-check.
 - **Partially matched orders**: If partially matched, cancellation applies only to the unmatched portion.
 - **DELETE with body**: This endpoint requires a request body despite being a DELETE method. `./finhay.sh request` handles this correctly via `curl -X DELETE -d "$BODY"`.
