@@ -10,7 +10,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 
 ## Response Keys
 
-- `result` — stock-realtime
+- `result` — stock-realtime, index-realtime
 - `data` — all other endpoints
 
 ---
@@ -20,6 +20,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | # | Path | Params | Res key | Note | Detail |
 |---|------|--------|---------|------|--------|
 | 1 | `/market/stock-realtime` | 1-of: `symbol`, `symbols`, `exchange` | `result` | object for `symbol`, array for `symbols`/`exchange` | [detail](./endpoints/stock-realtime.md) |
+| 2 | `/market/index-realtime` | `index`* (1+, comma-sep: `VNINDEX`,`HNXINDEX`,`UPCOMINDEX`,`VN30`,`HNX30`) | `result` | always array, 1 entry per code | [detail](./endpoints/index-realtime.md) |
 
 ## News
 
@@ -122,6 +123,7 @@ Common causes: missing API key, combining `symbol`/`symbols`/`exchange`, path mi
 | Bank deposit rates | `/market/financial-data/bank-interest-rates` |
 | Top crypto | `/market/financial-data/cryptos/top-trending` |
 | Historical price for global indices, Mag7 stocks, commodities, forex | `/market/financial-data/market?type=<TYPE>` |
+| Real-time value of a VN market index (VNINDEX, VN30, HNX30…) | `/market/index-realtime?index=<CODE>` |
 | Upcoming economic events (CPI releases, Fed meetings…) | `/market/financial-data/economic-calendar-events?weeks=N&country=<NAME>` |
 | Global financial news (forex, commodities, crypto, macro…) | `/market/financial-data/global-news?category=<CAT>&page=N` |
 | Full article content by ID | `/market/financial-data/global-news/:id` |

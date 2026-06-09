@@ -63,7 +63,7 @@ Retrieve realtime stock price data. Accepts **exactly one** of: `symbol`, `symbo
 
 ### Response Key
 
-`result` (not `data` — this is the only endpoint that uses `result`)
+`result` (not `data`) — only `stock-realtime` and `index-realtime` use `result`; every other market endpoint uses `data`.
 
 ### Components
 

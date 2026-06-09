@@ -51,6 +51,7 @@ Sent as `X-FH-OPENAPI-AGENT` and embedded in `User-Agent`.
 | Endpoint | Description | Params |
 |----------|-------------|--------|
 | `/market/stock-realtime` | **Stock Quotes**: Real-time pricing for symbols or exchanges. | `symbol`, `symbols`, or `exchange` |
+| `/market/index-realtime` | **Market Indices**: Real-time index values (VNINDEX, VN30, HNX30…). | `index` (comma-separated) |
 | `/market/news` | **Market News**: Corporate events, dividends, and AGM dates. | `stock`, `from_date`, `to_date` |
 | `/market/financial-data/gold` | **Gold Prices**: Real-time SJC and global gold spot prices. | — |
 | `/market/financial-data/silver` | **Silver Prices**: Real-time silver spot prices. | — |
