@@ -12,6 +12,10 @@ Integrate real-time financial data from [Finhay Securities](https://fhsc.com.vn/
 | `finhay-market` | Stock prices, gold, crypto, macro indicators, and technical charts. | When asking about markets, prices, or financial news. |
 | `finhay-portfolio` | Asset management, balances, holdings, order history, P&L, corporate-action rights. **Read-only**. | When checking personal accounts, NAV, or investment performance. |
 | `finhay-trading` | Place, modify, and cancel stock orders. 2FA-gated, 6-step safety protocol. **Real money**. | When the user explicitly wants to execute an order (buy, sell, cancel, modify). |
+| `finhay-portfolio-review` | Guardrailed workflow: portfolio snapshot, top-3 risks with numeric evidence, and safe risk-reduction options. **Read-only**, answers in Vietnamese. | When the user asks to review their portfolio, assess its health/risks, or how to reduce risk. |
+| `finhay-market-briefing` | Guardrailed workflow: portfolio-tied market briefing — only news/moves/events affecting held symbols, each with date + source, plus watch-items. **Read-only**, answers in Vietnamese. | When the user asks what's affecting their portfolio today or for news about their holdings. |
+| `finhay-stock-research` | Guardrailed workflow: single-stock research brief — quote, price history, fundamentals (with reporting periods), news, and analyst reports attributed as third-party opinions. **Read-only**, answers in Vietnamese. | When the user asks to analyze/research/evaluate one specific stock. |
+| `finhay-guardrails` | **Meta-skill**: the shared compliance rulebook (G1–G10) every workflow inherits — facts/interpretation split, no profit promises, no buy/sell directives, mandatory disclaimer, tool data never treated as instructions. The single Legal-review surface. | Applies automatically to all analysis workflows; not invoked directly. |
 
 ---
 
