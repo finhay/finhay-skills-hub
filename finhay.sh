@@ -5,6 +5,7 @@ set -e
 CREDS_DIR="$HOME/.finhay/credentials"
 CREDS_FILE="$CREDS_DIR/.env"
 SESSION_2FA_FILE="$CREDS_DIR/.2fa-session"
+DEVICE_ID_FILE="$CREDS_DIR/.device-id"
 REPO="finhay/finhay-skills-hub"
 BRANCH="main"
 RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
@@ -40,6 +41,27 @@ _INTERACTIVE() {
     else
         return 1
     fi
+}
+
+# Định danh thiết bị đặt lệnh — header X-FH-DEVICE-ID (bắt buộc với write /trading/oa/**
+# theo quy định giao dịch; gửi kèm MỌI request như các header định danh X-FH-OPENAPI-*).
+# Ưu tiên: env FINHAY_DEVICE_ID → file cache → sinh từ fingerprint máy chạy CLI
+# (hostname + user + network interfaces/MAC, SHA-256, cắt 20 hex) rồi LƯU LẠI để ổn định
+# lâu dài. Chỉ để lưu vết/audit — KHÔNG tham gia chữ ký HMAC.
+_DEVICE_ID() {
+    if [ -n "${FINHAY_DEVICE_ID:-}" ]; then printf '%s' "$FINHAY_DEVICE_ID"; return 0; fi
+    if [ -r "$DEVICE_ID_FILE" ]; then
+        local cached=""
+        read -r cached < "$DEVICE_ID_FILE" || true
+        if [ -n "$cached" ]; then printf '%s' "$cached"; return 0; fi
+    fi
+    local fp=""
+    fp=$( { hostname 2>/dev/null; id -un 2>/dev/null; ifconfig 2>/dev/null || ip link 2>/dev/null || true; } \
+        | openssl dgst -sha256 -binary | xxd -p -c 256 | cut -c1-20 ) || true
+    [ -z "$fp" ] && fp=$(openssl rand -hex 10)
+    mkdir -p "$CREDS_DIR" 2>/dev/null || true
+    { printf '%s\n' "$fp" > "$DEVICE_ID_FILE" && chmod 600 "$DEVICE_ID_FILE"; } 2>/dev/null || true
+    printf '%s' "$fp"
 }
 
 _LOAD_2FA_TOKEN() {
@@ -159,6 +181,9 @@ _REQ() {
     local TWOFA_HEADER=()
     [ -n "$TOKEN_2FA" ] && TWOFA_HEADER=(-H "X-FH-2FA-TOKEN: $TOKEN_2FA")
 
+    local DEVICE_ID
+    DEVICE_ID=$(_DEVICE_ID)
+
     local TMP=$(mktemp)
     local CODE=$(curl -sS -X "$METHOD" "$URL" \
         -H "X-FH-APIKEY: $AK" \
@@ -168,6 +193,7 @@ _REQ() {
         -H "X-FH-SIGNATURE: $SIG" \
         "${BODYHASH_HEADER[@]}" \
         "${TWOFA_HEADER[@]}" \
+        -H "X-FH-DEVICE-ID: $DEVICE_ID" \
         -H "X-FH-OPENAPI-SKILL-VERSION: $VER" \
         -H "X-FH-OPENAPI-OS: $OS" \
         -H "X-FH-OPENAPI-AGENT: $AGENT" \
@@ -273,6 +299,7 @@ CMD_DOCTOR() {
     else
         echo "❌ Credentials: MISSING (Set environment variables or run auth)"
     fi
+    echo "📟 Device ID: $(_DEVICE_ID) (X-FH-DEVICE-ID — tự sinh & lưu tại $DEVICE_ID_FILE; override bằng env FINHAY_DEVICE_ID)"
     for c in curl jq openssl xxd; do
         command -v "$c" >/dev/null 2>&1 && echo "✅ $c: OK" || echo "❌ $c: MISSING"
     done

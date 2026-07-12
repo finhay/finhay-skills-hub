@@ -181,6 +181,7 @@ export AGENT_NAME=claude-code
 ### Notes
 
 - **2FA required**: This endpoint is gated by the daily 2FA session at the auth service. Every call must include a valid `X-FH-2FA-TOKEN` header — `./finhay.sh` attaches it automatically when a session exists. See [SKILL.md → 2FA Session](../../SKILL.md#2fa-session-one-otp-per-day) for the OTP flow.
+- **Device ID required**: This endpoint requires the `X-FH-DEVICE-ID` header — the ordering-device identifier mandated by securities regulation. `./finhay.sh` attaches it automatically (derived once from the machine fingerprint, cached at `~/.finhay/credentials/.device-id`; override with `FINHAY_DEVICE_ID`). Missing header → `403 DEVICE_INFO_REQUIRED`. See [SKILL.md → Device ID](../../SKILL.md#device-id-automatic).
 - **Price encoding**: `limit_price` = price in VND. Example: stock price 25,500 VND → `limit_price: 25500`. No multiplication needed.
 - **type determines price field**: Both `limit_price` and `market_price` are always present in the body. When `type=LIMIT`: set `limit_price` to price in VND, set `market_price` to `null`. When `type=MARKET`: set `market_price` to the market price type (e.g. `ATC`, `ATO`, `MP`), set `limit_price` to `null`.
 - **stock_type**: Default `STOCK` for equities. Use `BOND` for bonds, `ETF` for ETFs, etc.

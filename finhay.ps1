@@ -1,6 +1,7 @@
 $CredsDir = Join-Path $HOME ".finhay\credentials"
 $CredsFile = Join-Path $CredsDir ".env"
 $Session2faFile = Join-Path $CredsDir ".2fa-session"
+$DeviceIdFile = Join-Path $CredsDir ".device-id"
 $BaseUrlDefault = "https://open-api.fhsc.com.vn"
 $Repo = "finhay/finhay-skills-hub"
 $Branch = "main"
@@ -22,6 +23,37 @@ $Deps = @(
 
 function Show-Help {
     Write-Host "Usage: .\finhay.ps1 {auth|doctor|deps|infer|request|2fa|sync}"
+}
+
+# Định danh thiết bị đặt lệnh — header X-FH-DEVICE-ID (bắt buộc với write /trading/oa/**
+# theo quy định giao dịch; gửi kèm MỌI request như các header định danh X-FH-OPENAPI-*).
+# Ưu tiên: env FINHAY_DEVICE_ID → file cache → sinh từ fingerprint máy chạy CLI
+# (hostname + user + MAC, SHA-256, cắt 20 hex) rồi LƯU LẠI để ổn định lâu dài.
+# Chỉ để lưu vết/audit — KHÔNG tham gia chữ ký HMAC.
+function Get-FinhayDeviceId {
+    if ($env:FINHAY_DEVICE_ID) { return $env:FINHAY_DEVICE_ID }
+    if (Test-Path $DeviceIdFile) {
+        $cached = Get-Content $DeviceIdFile -Raw -ErrorAction SilentlyContinue
+        if ($cached) { $cached = $cached.Trim(); if ($cached) { return $cached } }
+    }
+    $hostn = ""
+    try { $hostn = [System.Net.Dns]::GetHostName() } catch {}
+    $user = if ($env:USERNAME) { $env:USERNAME } elseif ($env:USER) { $env:USER } else { "" }
+    $macs = ""
+    try {
+        $macs = (Get-CimInstance Win32_NetworkAdapter -ErrorAction SilentlyContinue |
+            Where-Object MACAddress | Select-Object -ExpandProperty MACAddress) -join ","
+    } catch {}
+    $seed = "$hostn|$user|$macs"
+    if (-not ($seed -replace '\|', '')) { $seed = [Guid]::NewGuid().ToString() }
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $hash = [BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($seed))).Replace("-", "").ToLower()
+    $id = $hash.Substring(0, 20)
+    try {
+        if (-not (Test-Path $CredsDir)) { New-Item -ItemType Directory -Path $CredsDir | Out-Null }
+        Set-Content -Path $DeviceIdFile -Value $id
+    } catch {}
+    return $id
 }
 
 function Load-2FAToken {
@@ -159,6 +191,7 @@ function Request-Internal {
         "X-FH-TIMESTAMP" = $TS;
         "X-FH-NONCE" = $Nonce;
         "X-FH-SIGNATURE" = $Sig;
+        "X-FH-DEVICE-ID" = (Get-FinhayDeviceId);
         "X-FH-OPENAPI-SKILL-VERSION" = $Ver;
         "X-FH-OPENAPI-OS" = $Os;
         "X-FH-OPENAPI-AGENT" = $Agent;
@@ -266,14 +299,15 @@ function Cmd-Doctor {
         } catch {}
     }
 
-    if ($AK -and $AS) { 
+    if ($AK -and $AS) {
         Write-Host "✅ Credentials: OK"
         $DisplayBU = if ($BU) { $BU } else { $BaseUrlDefault }
         Write-Host "🌐 Base URL: $DisplayBU"
-    } else { 
-        Write-Host "❌ Credentials: MISSING (Set environment variables or run auth)" 
+    } else {
+        Write-Host "❌ Credentials: MISSING (Set environment variables or run auth)"
     }
-    
+    Write-Host "📟 Device ID: $(Get-FinhayDeviceId) (X-FH-DEVICE-ID — tự sinh & lưu tại $DeviceIdFile; override bằng env FINHAY_DEVICE_ID)"
+
     Write-Host "Environment: PowerShell $($PSVersionTable.PSVersion)"
 }
 

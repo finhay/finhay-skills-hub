@@ -56,5 +56,6 @@ For **write operations** (POST/PUT/DELETE) — currently only in `finhay-trading
 - Document the body schema in the endpoint detail file's `### Components` section.
 - The signing payload for write requests includes a body hash: `{TIMESTAMP}\n{METHOD}\n{PATH}\n{SHA256(body).hex()}`, plus an `X-FH-BODYHASH` header. `./finhay.sh request` handles this when the BODY argument is non-empty.
 - All write endpoints additionally require a daily 2FA session (`X-FH-2FA-TOKEN` header) — see `skills/finhay-trading/SKILL.md` → 2FA Session.
+- All write endpoints also require the ordering-device identifier header `X-FH-DEVICE-ID` — `./finhay.sh request` attaches it automatically on every request (machine fingerprint → SHA-256 → 20 hex, cached at `~/.finhay/credentials/.device-id`, override via `FINHAY_DEVICE_ID`). Never ask the user for it.
 - For skills that include write operations, also maintain `references/safety.md` (user confirmation protocol) and `references/error-codes.md` (mapping `result[].code` to user-facing messages).
 
