@@ -43,7 +43,7 @@ _INTERACTIVE() {
     fi
 }
 
-# Định danh thiết bị đặt lệnh — header X-FH-DEVICE-ID (bắt buộc với write /trading/oa/**
+# Định danh thiết bị đặt lệnh — header device-id (bắt buộc với write /trading/oa/**
 # theo quy định giao dịch; gửi kèm MỌI request như các header định danh X-FH-OPENAPI-*).
 # Ưu tiên: env FINHAY_DEVICE_ID → file cache → sinh từ fingerprint máy chạy CLI
 # (hostname + user + network interfaces/MAC, SHA-256, cắt 20 hex) rồi LƯU LẠI để ổn định
@@ -193,7 +193,7 @@ _REQ() {
         -H "X-FH-SIGNATURE: $SIG" \
         "${BODYHASH_HEADER[@]}" \
         "${TWOFA_HEADER[@]}" \
-        -H "X-FH-DEVICE-ID: $DEVICE_ID" \
+        -H "device-id: $DEVICE_ID" \
         -H "X-FH-OPENAPI-SKILL-VERSION: $VER" \
         -H "X-FH-OPENAPI-OS: $OS" \
         -H "X-FH-OPENAPI-AGENT: $AGENT" \
@@ -299,7 +299,7 @@ CMD_DOCTOR() {
     else
         echo "❌ Credentials: MISSING (Set environment variables or run auth)"
     fi
-    echo "📟 Device ID: $(_DEVICE_ID) (X-FH-DEVICE-ID — tự sinh & lưu tại $DEVICE_ID_FILE; override bằng env FINHAY_DEVICE_ID)"
+    echo "📟 Device ID: $(_DEVICE_ID) (device-id — tự sinh & lưu tại $DEVICE_ID_FILE; override bằng env FINHAY_DEVICE_ID)"
     for c in curl jq openssl xxd; do
         command -v "$c" >/dev/null 2>&1 && echo "✅ $c: OK" || echo "❌ $c: MISSING"
     done

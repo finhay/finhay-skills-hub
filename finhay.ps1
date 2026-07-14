@@ -25,7 +25,7 @@ function Show-Help {
     Write-Host "Usage: .\finhay.ps1 {auth|doctor|deps|infer|request|2fa|sync}"
 }
 
-# Định danh thiết bị đặt lệnh — header X-FH-DEVICE-ID (bắt buộc với write /trading/oa/**
+# Định danh thiết bị đặt lệnh — header device-id (bắt buộc với write /trading/oa/**
 # theo quy định giao dịch; gửi kèm MỌI request như các header định danh X-FH-OPENAPI-*).
 # Ưu tiên: env FINHAY_DEVICE_ID → file cache → sinh từ fingerprint máy chạy CLI
 # (hostname + user + MAC, SHA-256, cắt 20 hex) rồi LƯU LẠI để ổn định lâu dài.
@@ -191,7 +191,7 @@ function Request-Internal {
         "X-FH-TIMESTAMP" = $TS;
         "X-FH-NONCE" = $Nonce;
         "X-FH-SIGNATURE" = $Sig;
-        "X-FH-DEVICE-ID" = (Get-FinhayDeviceId);
+        "device-id" = (Get-FinhayDeviceId);
         "X-FH-OPENAPI-SKILL-VERSION" = $Ver;
         "X-FH-OPENAPI-OS" = $Os;
         "X-FH-OPENAPI-AGENT" = $Agent;
@@ -306,7 +306,7 @@ function Cmd-Doctor {
     } else {
         Write-Host "❌ Credentials: MISSING (Set environment variables or run auth)"
     }
-    Write-Host "📟 Device ID: $(Get-FinhayDeviceId) (X-FH-DEVICE-ID — tự sinh & lưu tại $DeviceIdFile; override bằng env FINHAY_DEVICE_ID)"
+    Write-Host "📟 Device ID: $(Get-FinhayDeviceId) (device-id — tự sinh & lưu tại $DeviceIdFile; override bằng env FINHAY_DEVICE_ID)"
 
     Write-Host "Environment: PowerShell $($PSVersionTable.PSVersion)"
 }

@@ -10,7 +10,7 @@ Errors appear in two places:
 |--------|---------|
 | 400 | Invalid request — missing field, bad value |
 | 401 | Auth failure — bad API key, expired signature, reused nonce, missing/wrong body hash |
-| 403 | Forbidden — IP blocked, scope denied, missing/expired 2FA session (`OTP_SESSION_*`), or missing `X-FH-DEVICE-ID` header (`DEVICE_INFO_REQUIRED` — update the CLI via `./finhay.sh sync finhay-trading`) |
+| 403 | Forbidden — IP blocked, scope denied |
 | 429 | Rate limit exceeded — wait until `X-RateLimit-Reset` |
 | 500 | Internal server error |
 

@@ -4,7 +4,7 @@ description: "Place, modify, and cancel stock orders on the Vietnam stock exchan
 license: MIT
 metadata:
   author: Finhay Securities
-  version: "1.1.0"
+  version: "1.0.0"
 ---
 
 # Finhay Trading
@@ -148,19 +148,6 @@ Limits enforced by the auth service:
 
 ---
 
-## Device ID (automatic)
-
-Securities regulation requires every place/modify/cancel request to carry an **ordering-device identifier**. The CLI handles this end-to-end — sent as the `X-FH-DEVICE-ID` header on every request (the gateway requires it on the three write endpoints):
-
-- **Derived once** from the machine fingerprint (hostname + user + network interfaces → SHA-256 → 20 hex chars) and cached at `~/.finhay/credentials/.device-id` (mode `0600`) — the same machine always reports the same identifier.
-- **Override** with the `FINHAY_DEVICE_ID` env var (e.g. a server/cloud deployment that manages its own device registry).
-- **Not part of the HMAC signature** — audit metadata only.
-- `./finhay.sh doctor` shows the current value.
-
-> **Agent note**: nothing to do here — **never ask the user for a device id** and never set it per-order. If a write request fails with `403 DEVICE_INFO_REQUIRED`, the local CLI copy is outdated (not sending the header) — run `./finhay.sh sync finhay-trading` to update, then retry.
-
----
-
 ## Order Execution
 
 > **⚠ DANGER — REAL MONEY OPERATIONS.** Placing, modifying, and cancelling stock orders on the Vietnam stock exchange involves real money. Every action is **irreversible once matched**. Follow the Safety Protocol below for **every** write operation — no exceptions.
@@ -288,7 +275,6 @@ The status table below is a **secondary** cross-check (and for explaining *why* 
 ## Constraints
 
 - **Privacy**: Mask API keys and sensitive credentials in all output.
-- **Device ID**: sent automatically as `X-FH-DEVICE-ID` on every request (see "Device ID (automatic)"). Never ask the user for it; never invent a per-order value.
 - **Credentials**: If `FINHAY_API_KEY` or `FINHAY_API_SECRET` are missing, stop and ask the user to provide them or run `./finhay.sh auth`.
 - **Sub-account IDs**: Run `./finhay.sh infer` once to populate `USER_ID` and `SUB_ACCOUNT_ORDER` / `SUB_ACCOUNT_EXT_ORDER`. The user must have at least one sub-account whose `sub_account_ext` ends in `.4` — if not, these vars stay empty and order execution is blocked (see Precheck above).
 - **Sub-account selection**: This skill **only** uses the `.4` account exposed via `$SUB_ACCOUNT_ORDER`. Do not ask the user to choose between Normal/Margin/etc — orders must go through the `.4` account exclusively.
