@@ -29,6 +29,7 @@ Trả lời trọn vẹn user job "phân tích sức khoẻ danh mục của tô
 
 **KHÔNG dùng khi:**
 - Muốn QUÉT KIỂM TRA rủi ro đầy đủ ("danh mục tôi ĐANG CÓ RỦI RO GÌ", "check/quét rủi ro toàn diện") → skill `finhay-risk-exposure` (audit đủ 5 nhóm, không đưa hướng giảm; skill này là review chọn lọc top-3 + hướng giảm). Hỏi lẫn cả hai → quét trước bằng risk-exposure rồi mời chạy tiếp review, hoặc ngược lại theo trọng tâm câu hỏi.
+- Câu hỏi THUẦN về tiền mặt ("tiền mặt của tôi nhiều/ít quá không", "nên giữ bao nhiêu tiền mặt") → skill `finhay-cash-allocation` (đào sâu một chiều tiền mặt; skill này chỉ chấm cash như 1 trong 5 nhóm).
 - Hỏi giá / tin của 1 mã đơn lẻ → gọi tool trực tiếp hoặc skill `finhay-market`.
 - Hỏi "hôm nay có gì ảnh hưởng danh mục tôi" / tin tức theo danh mục → skill `finhay-market-briefing` (bản tin event-driven; skill này là đánh giá cấu trúc rủi ro).
 - Phân tích/đánh giá sâu MỘT mã cụ thể ("phân tích FPT") → skill `finhay-stock-research`.

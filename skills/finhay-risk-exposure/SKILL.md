@@ -38,6 +38,7 @@ Bản **quét kiểm tra phơi nhiễm rủi ro** kiểu audit: chấm **đủ c
 
 **KHÔNG dùng khi:**
 - Muốn review tổng quan + top rủi ro + **hướng giảm** → `finhay-portfolio-review`.
+- Câu hỏi THUẦN về tiền mặt ("tiền mặt nhiều/ít quá không") → `finhay-cash-allocation` (skill này chỉ chấm cash trong nhóm R2).
 - Tin tức ảnh hưởng danh mục hôm nay → `finhay-market-briefing`.
 - Phân tích sâu 1 mã → `finhay-stock-research`.
 - Muốn đặt/sửa/huỷ lệnh → `finhay-trading` / app Finhay.
