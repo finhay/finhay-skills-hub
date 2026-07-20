@@ -4,7 +4,7 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 
 ## Architecture
 
-- **skills/** — 7 skills: 3 endpoint-catalog skills (each has `SKILL.md` + endpoint references) + 3 workflow skills (`finhay-portfolio-review`, `finhay-market-briefing`, `finhay-stock-research` — `SKILL.md` + workflow references, no endpoint docs of their own) + 1 meta-skill (`finhay-guardrails` — the shared compliance rulebook G1–G10 all workflows inherit; single Legal-review surface)
+- **skills/** — 8 skills: 3 endpoint-catalog skills (each has `SKILL.md` + endpoint references) + 4 workflow skills (`finhay-portfolio-review`, `finhay-risk-exposure`, `finhay-market-briefing`, `finhay-stock-research` — `SKILL.md` + workflow references, no endpoint docs of their own; the risk taxonomy in `finhay-portfolio-review/references/risk-taxonomy.md` is shared with `finhay-risk-exposure`) + 1 meta-skill (`finhay-guardrails` — the shared compliance rulebook G1–G10 all workflows inherit; single Legal-review surface)
 - **finhay.sh** / **finhay.ps1** — Unified CLI for Auth, Doctor, Infer, Requests, and 2FA session management
 - **.claude-plugin/** — Plugin metadata
 
@@ -16,6 +16,7 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 | finhay-portfolio | Read-only: user profile, balances, holdings, order history, PnL, corporate-action rights | Net worth, purchasing power, trading performance, dividend tracking |
 | finhay-trading | **Write**: place / modify / cancel stock orders. 2FA-gated, 6-step safety protocol | Order execution only — buy, sell, cancel, modify |
 | finhay-portfolio-review | **Workflow** (read-only): portfolio snapshot → top-3 risks with evidence → safe risk-reduction options; compliance guardrails baked in; source of truth for the Remote-MCP `instructions`/prompt renders | "Review my portfolio", "what risks am I holding", "how do I reduce risk" |
+| finhay-risk-exposure | **Workflow** (read-only): audit-style risk-exposure scan — ALL 5 risk groups checked over holdings + pending orders, every finding with evidence + severity, clean groups marked as checked; reports only, no advice (hands off to finhay-portfolio-review) | "What risks is my portfolio carrying", "run a full risk check/scan" |
 | finhay-market-briefing | **Workflow** (read-only): portfolio-tied market briefing — only news/moves/events mapped to held symbols (date + source required) + upcoming watch-items; general-market fallback when account access not granted | "What's affecting my portfolio today", "news about my holdings" |
 | finhay-stock-research | **Workflow** (read-only): single-stock research brief — quote + history + fundamentals (every figure carries its reporting period) + news + analyst reports attributed as third-party opinions; never concludes buy/sell | "Analyze FPT", "is HPG any good", "research this stock" |
 | finhay-guardrails | **Meta-skill** (policy): shared compliance rulebook G1–G10 inherited by every workflow skill; single Legal-review surface; source of the `COMPLIANCE` instructions render | Applies to all analysis output; not user-invoked |

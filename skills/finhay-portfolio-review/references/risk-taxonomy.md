@@ -1,6 +1,8 @@
-# Risk taxonomy — 5 nhóm rủi ro danh mục
+# Risk taxonomy — 5 nhóm rủi ro danh mục (TÀI SẢN DÙNG CHUNG)
 
-> Dùng ở bước B3 của workflow. Mỗi rủi ro báo cáo phải có: **evidence** (con số + tool nguồn) và **severity** (Cao / Trung bình / Thấp + lý do). Mọi ngưỡng dưới đây là **giả định vận hành (assumption)** — chưa phải chuẩn được Legal/PM phê duyệt — và phải được khai báo ở output mục 6 khi dùng đến.
+> **Dùng chung bởi 2 workflow:** `finhay-portfolio-review` (B3 — chọn top 3) và `finhay-risk-exposure` (B3 — quét đủ mọi phát hiện, ngưỡng quét mã ≥10%, bổ sung dữ kiện lệnh treo vào R1/R2). Sửa taxonomy/ngưỡng tại đây → cả hai skill + renders cập nhật theo.
+>
+> Mỗi rủi ro báo cáo phải có: **evidence** (con số + tool nguồn) và **severity** (Cao / Trung bình / Thấp + lý do). Mọi ngưỡng dưới đây là **giả định vận hành (assumption)** — chưa phải chuẩn được Legal/PM phê duyệt — và phải được khai báo trong output khi dùng đến.
 
 ## R1. Rủi ro tập trung (concentration)
 

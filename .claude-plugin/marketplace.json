@@ -12,7 +12,7 @@
     {
       "name": "finhay-skills-hub",
       "source": "./",
-      "description": "7 skills — market data (stocks, funds, gold, silver, crypto, macro, charts), trading account data (balances, portfolio, orders, PnL), order execution (place/modify/cancel stock orders, 2FA-gated), plus guardrailed workflows (portfolio risk-review, portfolio-tied market briefing, single-stock research briefs) governed by a shared financial-safety guardrails meta-skill",
+      "description": "8 skills — market data (stocks, funds, gold, silver, crypto, macro, charts), trading account data (balances, portfolio, orders, PnL), order execution (place/modify/cancel stock orders, 2FA-gated), plus guardrailed workflows (portfolio risk-review, full risk-exposure scan, portfolio-tied market briefing, single-stock research briefs) governed by a shared financial-safety guardrails meta-skill",
       "version": "2.0.0",
       "author": {
         "name": "Finhay Securities"

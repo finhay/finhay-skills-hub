@@ -28,7 +28,7 @@ Trả lời user job "hôm nay có gì ảnh hưởng danh mục tôi": bản ti
 **Dùng skill này khi** user hỏi: "hôm nay có gì ảnh hưởng danh mục tôi", "có tin gì về các mã tôi đang giữ", "bản tin theo danh mục của tôi", "tuần này có sự kiện gì liên quan cổ phiếu của tôi".
 
 **KHÔNG dùng khi:**
-- Đánh giá rủi ro / sức khoẻ danh mục ("danh mục tôi có rủi ro gì", "có nên lo không") → skill `finhay-portfolio-review`.
+- Review tổng quan / hướng giảm rủi ro → skill `finhay-portfolio-review`; quét kiểm tra rủi ro đầy đủ ("danh mục tôi đang có rủi ro gì") → skill `finhay-risk-exposure`.
 - Tổng quan thị trường chung không gắn danh mục ("thị trường hôm nay thế nào") → prompt `market-overview` / skill `finhay-market`.
 - Giá/tin của 1 mã đơn lẻ user tự nêu tên → gọi tool trực tiếp.
 - Phân tích/đánh giá sâu MỘT mã cụ thể ("phân tích FPT") → skill `finhay-stock-research`.

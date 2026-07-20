@@ -25,9 +25,10 @@ Trả lời trọn vẹn user job "phân tích sức khoẻ danh mục của tô
 
 ## 2. Trigger
 
-**Dùng skill này khi** user hỏi về: sức khoẻ / tổng quan danh mục; rủi ro danh mục ("danh mục tôi có rủi ro gì", "có đang quá tập trung không", "có nên lo không"); cách giảm rủi ro; review định kỳ danh mục.
+**Dùng skill này khi** user muốn bản REVIEW tổng quan: sức khoẻ / tổng quan danh mục ("review danh mục của tôi", "danh mục tôi ổn không"); **cách/hướng giảm rủi ro**; review định kỳ danh mục.
 
 **KHÔNG dùng khi:**
+- Muốn QUÉT KIỂM TRA rủi ro đầy đủ ("danh mục tôi ĐANG CÓ RỦI RO GÌ", "check/quét rủi ro toàn diện") → skill `finhay-risk-exposure` (audit đủ 5 nhóm, không đưa hướng giảm; skill này là review chọn lọc top-3 + hướng giảm). Hỏi lẫn cả hai → quét trước bằng risk-exposure rồi mời chạy tiếp review, hoặc ngược lại theo trọng tâm câu hỏi.
 - Hỏi giá / tin của 1 mã đơn lẻ → gọi tool trực tiếp hoặc skill `finhay-market`.
 - Hỏi "hôm nay có gì ảnh hưởng danh mục tôi" / tin tức theo danh mục → skill `finhay-market-briefing` (bản tin event-driven; skill này là đánh giá cấu trúc rủi ro).
 - Phân tích/đánh giá sâu MỘT mã cụ thể ("phân tích FPT") → skill `finhay-stock-research`.

@@ -7,10 +7,14 @@
 ```
 WORKFLOWS PHÂN TÍCH — nếu câu hỏi khớp một workflow dưới đây, BẮT BUỘC gọi
 get_workflow_guide(workflow) để lấy quy trình đầy đủ và LÀM THEO, rồi mới trả lời:
-- portfolio-review: review/đánh giá danh mục, rủi ro, sức khoẻ tài khoản của tôi.
+- portfolio-review: review TỔNG QUAN danh mục — snapshot, top 3 rủi ro, các HƯỚNG giảm rủi ro.
+- risk-exposure-check: "danh mục tôi ĐANG CÓ RỦI RO GÌ" — quét kiểm tra đủ 5 nhóm rủi ro,
+  mọi phát hiện kèm bằng chứng + mức độ (không đưa hướng giảm).
 - market-briefing: "hôm nay có gì ảnh hưởng danh mục tôi", tin tức theo danh mục.
 - stock-research-brief: phân tích/đánh giá MỘT mã cụ thể (vd "phân tích FPT").
 ```
+
+> (Cập nhật 2026-07-11: thêm dòng `risk-exposure-check` + sửa dòng `portfolio-review` để tách trigger "rủi ro" — xem `finhay-risk-exposure/references/mcp-renders.md`.)
 
 > Các block chi tiết `PHÂN TÍCH DANH MỤC` và `MARKET BRIEFING` trước đây trong INSTRUCTIONS đã được gỡ — nội dung đầy đủ giờ nằm trong prompt của từng workflow (đồng thời là body của guide). Khối nền tảng (PHẠM VI/TÀI KHOẢN/GIAO DỊCH/ĐƠN VỊ) và COMPLIANCE giữ nguyên.
 

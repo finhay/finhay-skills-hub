@@ -15,8 +15,10 @@
 > xem `finhay-stock-research/references/mcp-renders.md` (Render 1). Dòng router thuộc workflow này:
 
 ```
-- portfolio-review: review/đánh giá danh mục, rủi ro, sức khoẻ tài khoản của tôi.
+- portfolio-review: review TỔNG QUAN danh mục — snapshot, top 3 rủi ro, các HƯỚNG giảm rủi ro.
 ```
+
+> (Dòng router ĐƯỢC SỬA 2026-07-11 khi thêm `risk-exposure-check`: bỏ vế "rủi ro, sức khoẻ tài khoản" chung chung để tách trigger — câu "đang có rủi ro gì / quét rủi ro" giờ route sang `risk-exposure-check`.)
 
 > Khối `COMPLIANCE` vẫn nằm nguyên trong INSTRUCTIONS (luật nền dùng chung mọi workflow — không theo tier):
 
