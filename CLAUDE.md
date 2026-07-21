@@ -5,6 +5,7 @@ Claude Code plugin — agent skills for the Finhay Securities Open API.
 ## Architecture
 
 - **skills/** — 9 skills: 3 endpoint-catalog skills (each has `SKILL.md` + endpoint references) + 5 workflow skills (`finhay-portfolio-review`, `finhay-risk-exposure`, `finhay-cash-allocation`, `finhay-market-briefing`, `finhay-stock-research` — `SKILL.md` + workflow references, no endpoint docs of their own; the risk taxonomy in `finhay-portfolio-review/references/risk-taxonomy.md` is shared with `finhay-risk-exposure`) + 1 meta-skill (`finhay-guardrails` — the shared compliance rulebook G1–G10 all workflows inherit; single Legal-review surface)
+- **packages/** — Agent Package manifests: `<catalog-name>/PACKAGE.md` (YAML manifest + persona + composition decisions) + `references/` (pilot kit). Packages COMPOSE skills into distributable roles (persona + workflow list + max-scopes) — they never modify skills, and may only NARROW permissions; rendered into vnsc-mcp-server `/mcp/:pkg` entries.
 - **finhay.sh** / **finhay.ps1** — Unified CLI for Auth, Doctor, Infer, Requests, and 2FA session management
 - **.claude-plugin/** — Plugin metadata
 
