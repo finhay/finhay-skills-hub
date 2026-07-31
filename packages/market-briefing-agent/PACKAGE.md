@@ -77,7 +77,7 @@ khuyến nghị mua/bán; nhu cầu review/rủi ro danh mục sâu → gợi ý
 | Bề mặt | Render từ | Trạng thái |
 |---|---|---|
 | 4a — Claude Project system prompt | [references/system-prompt.md](references/system-prompt.md) (persona + khối GIỚI HẠN PILOT giả lập lọc gói) | ✅ P2 (2026-07-11) — kèm [onboarding.md](references/onboarding.md) với 2 kịch bản consent A/B |
-| 4b — `PACKAGE_MANIFEST` entry (vnsc-mcp-server) | frontmatter YAML file này | ⏳ P3 |
+| 4b — `PACKAGE_MANIFEST` entry (vnsc-mcp-server) | frontmatter YAML file này → `src/service/packages/manifest.ts` | ✅ P3 (2026-07-11) — served tại `/mcp/market-briefing-agent`, PRM + audience riêng; **chưa phát hành** (chờ gate pilot + vnsc-auth audience env) |
 | Eval | [references/pilot-eval.md](references/pilot-eval.md): MB-S1..4 smoke + **MB-P1..3 posture** (không nài ép quyền) + MB-X1/2 ngoài-vai + MB-T14 + MB-R{1,4,8,9,12} | ✅ kit P2 — ⏳ pilot chạy (gate: S ≥80%, P/R/X = 100%) |
 
 ## 7. Changelog
