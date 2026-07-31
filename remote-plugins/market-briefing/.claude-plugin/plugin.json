@@ -1,0 +1,10 @@
+{
+  "name": "finhay-market-briefing",
+  "displayName": "Finhay Market Briefing",
+  "version": "1.0.0",
+  "description": "Trợ lý bản tin & research thị trường chứng khoán Việt Nam — bản tin theo danh mục (hoặc bản tin chung), phân tích một mã, tổng quan thị trường. Chỉ đọc, không khuyến nghị mua/bán. Dùng được ngay với dữ liệu công khai.",
+  "author": { "name": "Finhay Securities", "url": "https://fhsc.com.vn" },
+  "homepage": "https://fhsc.com.vn",
+  "license": "MIT",
+  "keywords": ["finhay", "market", "news", "research", "vietnam", "stocks"]
+}

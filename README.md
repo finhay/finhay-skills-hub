@@ -15,6 +15,24 @@ Integrate real-time financial data from [Finhay Securities](https://fhsc.com.vn/
 
 ---
 
+## 🔌 NEW: Remote MCP Plugins (khuyên dùng)
+
+Cách mới, không cần API key: cài plugin trỏ thẳng Finhay Remote MCP, đăng nhập OAuth.
+
+| Plugin | Dành cho | Cài |
+|---|---|---|
+| **Finhay Portfolio Analyst** | Phân tích danh mục & rủi ro (chỉ đọc) | `/plugin install finhay-portfolio-analyst@finhay-skills-hub` |
+| **Finhay Market Briefing** | Bản tin & research thị trường | `/plugin install finhay-market-briefing@finhay-skills-hub` |
+
+Chi tiết: [remote-plugins/README.md](./remote-plugins/README.md).
+
+> **Lưu ý kênh cũ (skills + API key/CLI):** không còn phân phối qua marketplace. Nếu bạn đã cài
+> plugin skills trước đây: bản đã cài vẫn chạy nhưng sẽ không nhận update — khuyến nghị gỡ và
+> chuyển sang 2 plugin MCP ở trên (OAuth, không cần API key). Nội bộ/dev vẫn dùng được kênh cũ
+> qua `claude --plugin-dir ./`.
+
+---
+
 ## 🛠 Installation
 
 ### Claude Code Marketplace

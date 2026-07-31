@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "finhay-market-briefing": {
+      "type": "http",
+      "url": "https://dev-mcp.finhay.com.vn/mcp/market-briefing-agent"
+    }
+  }
+}

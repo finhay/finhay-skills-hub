@@ -1,0 +1,10 @@
+{
+  "name": "finhay-portfolio-analyst",
+  "displayName": "Finhay Portfolio Analyst",
+  "version": "1.0.0",
+  "description": "Trợ lý phân tích danh mục Finhay/FHSC — review danh mục, quét 5 nhóm rủi ro, phân tích tiền mặt, bản tin theo danh mục. CHỈ ĐỌC dữ liệu, không bao giờ đặt lệnh. Đăng nhập OAuth bằng tài khoản Finhay.",
+  "author": { "name": "Finhay Securities", "url": "https://fhsc.com.vn" },
+  "homepage": "https://fhsc.com.vn",
+  "license": "MIT",
+  "keywords": ["finhay", "portfolio", "risk", "vietnam", "securities", "finance"]
+}

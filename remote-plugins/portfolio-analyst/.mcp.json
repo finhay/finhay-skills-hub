@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "finhay-portfolio-analyst": {
+      "type": "http",
+      "url": "https://dev-mcp.finhay.com.vn/mcp/portfolio-analyst-agent"
+    }
+  }
+}

@@ -1,22 +1,15 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "finhay-skills-hub",
+  "name": "finhay-agents",
   "description": "Finhay AI Agents — trợ lý phân tích danh mục & bản tin thị trường chứng khoán Việt Nam, chạy trên Finhay Remote MCP (OAuth, read-only)",
-  "owner": {
-    "name": "Finhay Securities"
-  },
-  "metadata": {
-    "description": "Finhay remote-MCP plugins: portfolio analysis & market briefing agents for Vietnamese securities via Finhay Securities Open API (OAuth, read-only)"
-  },
+  "owner": { "name": "Finhay Securities", "url": "https://fhsc.com.vn" },
   "plugins": [
     {
       "name": "finhay-portfolio-analyst",
-      "source": "./remote-plugins/portfolio-analyst",
+      "source": "./portfolio-analyst",
       "description": "Phân tích danh mục cá nhân: review tổng quan, quét 5 nhóm rủi ro, phân tích tiền mặt, bản tin theo danh mục. Chỉ đọc — không bao giờ đặt lệnh. OAuth bằng tài khoản Finhay.",
       "version": "1.0.0",
-      "author": {
-        "name": "Finhay Securities"
-      },
+      "author": { "name": "Finhay Securities" },
       "homepage": "https://fhsc.com.vn",
       "license": "MIT",
       "category": "finance",
@@ -25,12 +18,10 @@
     },
     {
       "name": "finhay-market-briefing",
-      "source": "./remote-plugins/market-briefing",
+      "source": "./market-briefing",
       "description": "Bản tin & research thị trường chứng khoán VN: tin theo danh mục, phân tích một mã, tổng quan thị trường. Dùng được ngay không cần kết nối tài khoản.",
       "version": "1.0.0",
-      "author": {
-        "name": "Finhay Securities"
-      },
+      "author": { "name": "Finhay Securities" },
       "homepage": "https://fhsc.com.vn",
       "license": "MIT",
       "category": "finance",
